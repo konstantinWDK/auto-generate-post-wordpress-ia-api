@@ -9,11 +9,32 @@ Author URI: https://webdesignerk.com
 */
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+    exit; // Salir si se accede directamente
 }
 
-// Function to generate and publish post
+// Función para generar y publicar el post
 function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $post_date, $word_count) {
+    // Validar y sanitizar los parámetros de entrada
+    $prompt = sanitize_text_field($prompt);
+    $category_id = absint($category_id);
+    $tags = array_map('sanitize_text_field', $tags);
+    $post_status = sanitize_key($post_status);
+    $post_date = sanitize_text_field($post_date);
+    $word_count = absint($word_count);
+
+    // Validar el estado del post
+    $allowed_post_statuses = ['publish', 'draft', 'future'];
+    if (!in_array($post_status, $allowed_post_statuses)) {
+        $post_status = 'draft';
+    }
+
+    // Validar fecha de publicación
+    if (!$post_date || strtotime($post_date) === false) {
+        $post_date = current_time('mysql');
+    } else {
+        $post_date = date('Y-m-d H:i:s', strtotime($post_date));
+    }
+
     $api_key = get_option('openai_api_key');
     if (!$api_key) {
         return 'No se ha proporcionado la clave API';
@@ -47,19 +68,19 @@ function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $
             'Authorization' => 'Bearer ' . $api_key,
             'Content-Type' => 'application/json',
         ],
-        'body' => json_encode($data),
+        'body' => wp_json_encode($data),
         'timeout' => 120, // Aumentar el tiempo de espera a 120 segundos
     ]);
 
     if (is_wp_error($response)) {
-        return 'Error en la solicitud a OpenAI: ' . $response->get_error_message();
+        return 'Error en la solicitud a OpenAI: ' . esc_html($response->get_error_message());
     }
 
     $body = wp_remote_retrieve_body($response);
     $result = json_decode($body, true);
 
     if (!isset($result['choices'][0]['message']['content'])) {
-        return 'No se generó contenido. Respuesta de la API: ' . print_r($result, true);
+        return 'No se generó contenido. Respuesta de la API: ' . esc_html(print_r($result, true));
     }
 
     $post_content = $result['choices'][0]['message']['content'];
@@ -81,7 +102,7 @@ function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $
             'Authorization' => 'Bearer ' . $api_key,
             'Content-Type' => 'application/json',
         ],
-        'body' => json_encode($title_data),
+        'body' => wp_json_encode($title_data),
         'timeout' => 30,
     ]);
 
@@ -98,13 +119,13 @@ function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $
 
     // Crear post en WordPress
     $post_data = [
-        'post_title' => $post_title,
+        'post_title'   => $post_title,
         'post_content' => $post_content,
-        'post_status' => $post_status,
-        'post_author' => 1,
-        'post_category' => [$category_id],
-        'tags_input' => $tags,
-        'post_date' => $post_date,
+        'post_status'  => $post_status,
+        'post_author'  => get_current_user_id(),
+        'post_category'=> [$category_id],
+        'tags_input'   => $tags,
+        'post_date'    => $post_date,
     ];
 
     // Desactivar temporalmente los filtros de contenido
@@ -118,10 +139,10 @@ function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $
     add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
 
     if (is_wp_error($post_id)) {
-        return "Error al crear el post: " . $post_id->get_error_message();
+        return "Error al crear el post: " . esc_html($post_id->get_error_message());
     }
 
-    return "Post creado con ID: $post_id, programado para: $post_date";
+    return "Post creado con ID: " . esc_html($post_id) . ", programado para: " . esc_html($post_date);
 }
 
 // Crear página de configuración en el backoffice
@@ -207,7 +228,7 @@ function my_plugin_settings_page_content() {
                 <tr valign="top">
                     <th scope="row">Fecha y hora de publicación</th>
                     <td>
-                        <input type="datetime-local" name="post_date" value="<?php echo date('Y-m-d\TH:i'); ?>" />
+                        <input type="datetime-local" name="post_date" value="<?php echo esc_attr(date('Y-m-d\TH:i')); ?>" />
                     </td>
                 </tr>
             </table>
@@ -221,7 +242,7 @@ function my_plugin_settings_page_content() {
             $tags = explode(',', get_option('auto_post_tags', ''));
             $post_status = get_option('auto_post_status', 'publish');
             $word_count = get_option('auto_post_word_count', '500');
-            $post_date = isset($_POST['post_date']) ? $_POST['post_date'] : current_time('mysql');
+            $post_date = isset($_POST['post_date']) ? sanitize_text_field($_POST['post_date']) : current_time('mysql');
 
             $message = generate_and_publish_post($prompt, $category_id, $tags, $post_status, $post_date, $word_count);
             echo "<div class='notice notice-info'><p>" . esc_html($message) . "</p></div>";
@@ -239,6 +260,5 @@ function register_my_plugin_settings() {
     register_setting('my_plugin_settings_group', 'auto_post_tags', 'sanitize_text_field');
     register_setting('my_plugin_settings_group', 'auto_post_status', 'sanitize_text_field');
     register_setting('my_plugin_settings_group', 'auto_post_word_count', 'absint');
-    
 }
 add_action('admin_init', 'register_my_plugin_settings');
