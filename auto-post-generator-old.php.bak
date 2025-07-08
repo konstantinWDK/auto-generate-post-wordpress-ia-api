@@ -1,0 +1,1671 @@
+<?php
+/*
+Plugin Name: Auto Post Generator Pro
+Plugin URI: https://webdesignerk.com
+Description: Advanced AI-powered content generator with idea management system, article-based generation, category selection, and optimized HTML output for WordPress.
+Version: 3.1
+Author: konstantinWDK
+Author URI: https://webdesignerk.com
+*/
+
+if (!defined('ABSPATH')) {
+    exit; // Salir si se accede directamente
+}
+
+// Función para generar y publicar el post
+function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $post_date, $word_count, $ai_provider = 'openai', $custom_settings = [], $keyword = '', $source_article = '') {
+    // Validar y sanitizar los parámetros de entrada
+    $prompt = sanitize_text_field($prompt);
+    $category_id = absint($category_id);
+    $tags = array_map('sanitize_text_field', $tags);
+    $post_status = sanitize_key($post_status);
+    $post_date = sanitize_text_field($post_date);
+    $word_count = absint($word_count);
+
+    // Validar el estado del post
+    $allowed_post_statuses = ['publish', 'draft', 'future'];
+    if (!in_array($post_status, $allowed_post_statuses)) {
+        $post_status = 'draft';
+    }
+
+    // Validar fecha de publicación
+    if (!$post_date || strtotime($post_date) === false) {
+        $post_date = current_time('mysql');
+    } else {
+        $post_date = date('Y-m-d H:i:s', strtotime($post_date));
+    }
+
+    // Configurar proveedor de IA
+    $ai_provider = $ai_provider ?: get_option('ai_provider', 'openai');
+    
+    if ($ai_provider === 'deepseek') {
+        $api_key = get_option('deepseek_api_key');
+        $endpoint = 'https://api.deepseek.com/v1/chat/completions';
+        $model = get_option('deepseek_model', 'deepseek-chat');
+    } else {
+        $api_key = get_option('openai_api_key');
+        $endpoint = 'https://api.openai.com/v1/chat/completions';
+        $model = get_option('openai_model', 'gpt-4');
+    }
+    
+    if (!$api_key) {
+        return 'No se ha proporcionado la clave API para ' . $ai_provider;
+    }
+    // Configuraciones avanzadas personalizables
+    $writing_style = get_option('writing_style', 'informativo');
+    $target_audience = get_option('target_audience', 'general');
+    $tone = get_option('tone', 'profesional');
+    $include_faq = get_option('include_faq', 'yes');
+    $include_lists = get_option('include_lists', 'yes');
+    $seo_focus = get_option('seo_focus', 'medium');
+    $custom_instructions = get_option('custom_instructions', '');
+    
+    // Construir prompt personalizado
+    $seo_prompt = "Actúa como un experto en SEO y redacción de contenido con estilo {$writing_style} y tono {$tone}. ";
+    $seo_prompt .= "Audiencia objetivo: {$target_audience}. ";
+    
+    if (!empty($keyword)) {
+        $seo_prompt .= "IMPORTANTE: Enfócate en la palabra clave principal '{$keyword}' y úsala estratégicamente a lo largo del contenido para SEO. ";
+    }
+    
+    $seo_prompt .= "Crea un artículo de blog de aproximadamente {$word_count} palabras sobre el siguiente tema: {$prompt}. ";
+    
+    $seo_prompt .= "Estructura el contenido de la siguiente manera:\n";
+    $seo_prompt .= "1. Introduce el tema con un párrafo atractivo.\n";
+    $seo_prompt .= "2. Utiliza encabezados <h2> para las secciones principales.\n";
+    $seo_prompt .= "3. Utiliza encabezados <h3> para subsecciones cuando sea necesario.\n";
+    
+    if ($include_lists === 'yes') {
+        $seo_prompt .= "4. Incluye al menos una lista con viñetas (<ul><li>) o numerada (<ol><li>).\n";
+    }
+    
+    $seo_prompt .= "5. Utiliza <strong> para negritas y <em> para cursivas cuando sea apropiado.\n";
+    $seo_prompt .= "6. Concluye con un párrafo de resumen.\n";
+    
+    if ($include_faq === 'yes') {
+        $seo_prompt .= "7. Añade un schema FAQ de 3 preguntas y respuestas relacionadas con el tema al final del artículo, utilizando el formato de schema.org.\n";
+    }
+    
+    if ($custom_instructions) {
+        $seo_prompt .= "Instrucciones adicionales: {$custom_instructions}\n";
+    }
+    
+    $seo_prompt .= "Asegúrate de que el contenido sea informativo, atractivo y optimizado para SEO. Utiliza las etiquetas HTML apropiadas para dar formato al contenido. NO incluyas un título para el artículo.";
+
+    // Configurar parámetros de IA personalizables
+    $temperature = get_option('ai_temperature', 0.7);
+    $max_tokens = get_option('ai_max_tokens', 2000);
+    $top_p = get_option('ai_top_p', 1.0);
+    $frequency_penalty = get_option('ai_frequency_penalty', 0.0);
+    $presence_penalty = get_option('ai_presence_penalty', 0.0);
+    
+    $data = [
+        'model' => $model,
+        'messages' => [
+            ['role' => 'system', 'content' => 'Eres un asistente experto en SEO que genera contenido para blogs con formato HTML.'],
+            ['role' => 'user', 'content' => $seo_prompt]
+        ],
+        'max_tokens' => intval($max_tokens),
+        'temperature' => floatval($temperature),
+        'top_p' => floatval($top_p),
+        'frequency_penalty' => floatval($frequency_penalty),
+        'presence_penalty' => floatval($presence_penalty),
+    ];
+
+    $response = wp_remote_post($endpoint, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ],
+        'body' => wp_json_encode($data),
+        'timeout' => 120, // Aumentar el tiempo de espera a 120 segundos
+    ]);
+
+    if (is_wp_error($response)) {
+        return 'Error en la solicitud a OpenAI: ' . esc_html($response->get_error_message());
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $result = json_decode($body, true);
+
+    if (!isset($result['choices'][0]['message']['content'])) {
+        return 'No se generó contenido. Respuesta de la API: ' . esc_html(print_r($result, true));
+    }
+
+    $post_content = $result['choices'][0]['message']['content'];
+
+    // Generar título del post
+    $title_length = get_option('title_max_length', 60);
+    $title_prompt = "Genera un título SEO atractivo y conciso (máximo {$title_length} caracteres) para un artículo sobre: {$prompt}.";
+    
+    if (!empty($keyword)) {
+        $title_prompt .= " IMPORTANTE: Incluye la palabra clave '{$keyword}' en el título de forma natural.";
+    }
+    
+    $title_prompt .= " No uses comillas en el título.";
+    $title_data = [
+        'model' => $model,
+        'messages' => [
+            ['role' => 'system', 'content' => 'Eres un asistente experto en SEO que genera títulos atractivos sin comillas.'],
+            ['role' => 'user', 'content' => $title_prompt]
+        ],
+        'max_tokens' => 60,
+        'temperature' => floatval($temperature),
+    ];
+
+    $title_response = wp_remote_post($endpoint, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ],
+        'body' => wp_json_encode($title_data),
+        'timeout' => 30,
+    ]);
+
+    if (is_wp_error($title_response)) {
+        $post_title = 'Título no generado';
+    } else {
+        $title_body = wp_remote_retrieve_body($title_response);
+        $title_result = json_decode($title_body, true);
+        $post_title = isset($title_result['choices'][0]['message']['content']) ? trim($title_result['choices'][0]['message']['content']) : 'Título no generado';
+        // Eliminar cualquier comilla restante del título
+        $post_title = str_replace('"', '', $post_title);
+        $post_title = str_replace("'", '', $post_title);
+    }
+
+    // Crear post en WordPress
+    $post_data = [
+        'post_title'   => $post_title,
+        'post_content' => $post_content,
+        'post_status'  => $post_status,
+        'post_author'  => get_current_user_id(),
+        'post_category'=> [$category_id],
+        'tags_input'   => $tags,
+        'post_date'    => $post_date,
+    ];
+
+    // Desactivar temporalmente los filtros de contenido
+    remove_filter('content_save_pre', 'wp_filter_post_kses');
+    remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+
+    $post_id = wp_insert_post($post_data);
+
+    // Reactivar los filtros de contenido
+    add_filter('content_save_pre', 'wp_filter_post_kses');
+    add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+
+    if (is_wp_error($post_id)) {
+        return "Error al crear el post: " . esc_html($post_id->get_error_message());
+    }
+
+    return "Post creado con ID: " . esc_html($post_id) . ", programado para: " . esc_html($post_date);
+}
+
+// Función para generar ideas basadas en un artículo de referencia
+function generate_ideas_from_article($article, $count, $approach) {
+    $ai_provider = get_option('ai_provider', 'openai');
+    
+    if ($ai_provider === 'deepseek') {
+        $api_key = get_option('deepseek_api_key');
+        $endpoint = 'https://api.deepseek.com/v1/chat/completions';
+        $model = get_option('deepseek_model', 'deepseek-chat');
+    } else {
+        $api_key = get_option('openai_api_key');
+        $endpoint = 'https://api.openai.com/v1/chat/completions';
+        $model = get_option('openai_model', 'gpt-4');
+    }
+    
+    if (!$api_key) {
+        return false;
+    }
+    
+    $approach_instructions = [
+        'related' => 'ideas de temas relacionados y complementarios',
+        'expanded' => 'ideas que amplíen y profundicen los conceptos mencionados',
+        'alternative' => 'ideas con enfoques alternativos y perspectivas diferentes',
+        'practical' => 'ideas de aplicaciones prácticas y casos de uso'
+    ];
+    
+    $instruction = $approach_instructions[$approach] ?? 'ideas relacionadas';
+    
+    $prompt = "Analiza el siguiente artículo y genera {$count} {$instruction} para nuevos posts de blog basados en su contenido.\n\n";
+    $prompt .= "Artículo de referencia:\n{$article}\n\n";
+    $prompt .= "Cada idea debe ser:\n";
+    $prompt .= "1. Específica y atractiva\n";
+    $prompt .= "2. Única y diferente al artículo original\n";
+    $prompt .= "3. Optimizada para SEO\n";
+    $prompt .= "4. Factible de escribir como post independiente\n";
+    $prompt .= "Presenta cada idea como un título atractivo en una línea separada, sin numeración.";
+    
+    $data = [
+        'model' => $model,
+        'messages' => [
+            ['role' => 'system', 'content' => 'Eres un experto en marketing de contenidos que analiza artículos y genera ideas creativas para posts de blog.'],
+            ['role' => 'user', 'content' => $prompt]
+        ],
+        'max_tokens' => 1000,
+        'temperature' => 0.8,
+    ];
+    
+    $response = wp_remote_post($endpoint, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ],
+        'body' => wp_json_encode($data),
+        'timeout' => 60,
+    ]);
+    
+    if (is_wp_error($response)) {
+        return false;
+    }
+    
+    $body = wp_remote_retrieve_body($response);
+    $result = json_decode($body, true);
+    
+    if (!isset($result['choices'][0]['message']['content'])) {
+        return false;
+    }
+    
+    $ideas_text = $result['choices'][0]['message']['content'];
+    $ideas_array = array_filter(explode("\n", $ideas_text));
+    
+    $saved_ideas = [];
+    $current_time = current_time('Y-m-d H:i:s');
+    
+    foreach ($ideas_array as $idea) {
+        $idea = trim($idea);
+        if (empty($idea)) continue;
+        
+        // Limpiar numeración si existe
+        $idea = preg_replace('/^\d+\.?\s*/', '', $idea);
+        $idea = trim($idea);
+        
+        if (empty($idea)) continue;
+        
+        // Crear post de idea
+        $post_data = [
+            'post_title' => $idea,
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'post_idea',
+            'post_author' => get_current_user_id(),
+        ];
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (!is_wp_error($post_id)) {
+            // Guardar meta datos
+            update_post_meta($post_id, '_post_idea_topic', 'Basado en artículo de referencia');
+            update_post_meta($post_id, '_post_idea_content_type', $approach);
+            update_post_meta($post_id, '_post_idea_generated_date', $current_time);
+            update_post_meta($post_id, '_post_idea_source_article', wp_trim_words($article, 50));
+            
+            $saved_ideas[] = $post_id;
+        }
+    }
+    
+    if (!empty($saved_ideas)) {
+        $message = 'Se han generado y guardado ' . count($saved_ideas) . ' ideas basadas en el artículo de referencia.';
+        $message .= ' <a href="' . admin_url('edit.php?post_type=post_idea') . '" class="button button-secondary">Ver Ideas Guardadas</a>';
+        return $message;
+    }
+    
+    return false;
+}
+
+// Crear página de configuración en el backoffice
+function my_plugin_settings_page() {
+    add_menu_page(
+        'Auto Post Generator Pro',
+        'Auto Post Generator Pro',
+        'manage_options',
+        'auto-post-generator-pro',
+        'my_plugin_settings_page_content',
+        'dashicons-edit-page',
+        30
+    );
+    
+    add_submenu_page(
+        'auto-post-generator-pro',
+        'Configuración',
+        'Configuración',
+        'manage_options',
+        'auto-post-generator-pro',
+        'my_plugin_settings_page_content'
+    );
+}
+add_action('admin_menu', 'my_plugin_settings_page');
+
+// Contenido de la página de configuración
+function my_plugin_settings_page_content() {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('No tienes suficientes permisos para acceder a esta página.'));
+    }
+
+    // Comprobar si la configuración se actualizó
+    if (isset($_GET['settings-updated'])) {
+        add_settings_error('my_plugin_messages', 'my_plugin_message', __('Configuración guardada'), 'updated');
+    }
+
+    // Mostrar mensajes de error/actualización
+    settings_errors('my_plugin_messages');
+    
+    // Obtener pestaña activa
+    $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
+    ?>
+    <div class="wrap">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        
+        <!-- Pestañas de navegación -->
+        <nav class="nav-tab-wrapper">
+            <a href="?page=auto-post-generator-pro&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">Configuración General</a>
+            <a href="?page=auto-post-generator-pro&tab=ai" class="nav-tab <?php echo $active_tab == 'ai' ? 'nav-tab-active' : ''; ?>">Configuración IA</a>
+            <a href="?page=auto-post-generator-pro&tab=content" class="nav-tab <?php echo $active_tab == 'content' ? 'nav-tab-active' : ''; ?>">Configuración de Contenido</a>
+            <a href="?page=auto-post-generator-pro&tab=scheduling" class="nav-tab <?php echo $active_tab == 'scheduling' ? 'nav-tab-active' : ''; ?>">Programación</a>
+            <a href="?page=auto-post-generator-pro&tab=ideas" class="nav-tab <?php echo $active_tab == 'ideas' ? 'nav-tab-active' : ''; ?>">Ideas de Posts</a>
+            <a href="?page=auto-post-generator-pro&tab=create" class="nav-tab <?php echo $active_tab == 'create' ? 'nav-tab-active' : ''; ?>">Crear Post</a>
+        </nav>
+        
+        <?php if ($active_tab == 'general') { ?>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('my_plugin_settings_group');
+            do_settings_sections('my_plugin_settings_group');
+            ?>
+            <h2>Configuración General</h2>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Proveedor de IA</th>
+                    <td>
+                        <select name="ai_provider">
+                            <option value="openai" <?php selected(get_option('ai_provider'), 'openai'); ?>>OpenAI</option>
+                            <option value="deepseek" <?php selected(get_option('ai_provider'), 'deepseek'); ?>>DeepSeek</option>
+                        </select>
+                        <p class="description">Selecciona el proveedor de IA que deseas usar</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Clave API de OpenAI</th>
+                    <td>
+                        <input type="password" name="openai_api_key" value="<?php echo esc_attr(get_option('openai_api_key')); ?>" style="width: 400px;" />
+                        <p class="description">Obtén tu clave API desde <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a></p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Clave API de DeepSeek</th>
+                    <td>
+                        <input type="password" name="deepseek_api_key" value="<?php echo esc_attr(get_option('deepseek_api_key')); ?>" style="width: 400px;" />
+                        <p class="description">Obtén tu clave API desde <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a></p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Categoría por defecto</th>
+                    <td>
+                        <?php
+                        $categories = get_categories(['hide_empty' => false]);
+                        $selected_category = get_option('auto_post_category', 1);
+                        ?>
+                        <select name="auto_post_category">
+                            <?php foreach ($categories as $category) { ?>
+                                <option value="<?php echo esc_attr($category->term_id); ?>" <?php selected($selected_category, $category->term_id); ?>>
+                                    <?php echo esc_html($category->name); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Etiquetas (separadas por comas)</th>
+                    <td><input type="text" name="auto_post_tags" value="<?php echo esc_attr(get_option('auto_post_tags', '')); ?>" style="width: 400px;" /></td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Estado del post</th>
+                    <td>
+                        <select name="auto_post_status">
+                            <option value="publish" <?php selected(get_option('auto_post_status'), 'publish'); ?>>Publicar</option>
+                            <option value="draft" <?php selected(get_option('auto_post_status'), 'draft'); ?>>Borrador</option>
+                            <option value="future" <?php selected(get_option('auto_post_status'), 'future'); ?>>Programado</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+        
+        <?php } elseif ($active_tab == 'ai') { ?>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('my_plugin_ai_settings_group');
+            do_settings_sections('my_plugin_ai_settings_group');
+            ?>
+            <h2>Configuración de IA</h2>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Modelo OpenAI</th>
+                    <td>
+                        <select name="openai_model">
+                            <option value="gpt-4" <?php selected(get_option('openai_model'), 'gpt-4'); ?>>GPT-4</option>
+                            <option value="gpt-4-turbo" <?php selected(get_option('openai_model'), 'gpt-4-turbo'); ?>>GPT-4 Turbo</option>
+                            <option value="gpt-3.5-turbo" <?php selected(get_option('openai_model'), 'gpt-3.5-turbo'); ?>>GPT-3.5 Turbo</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Modelo DeepSeek</th>
+                    <td>
+                        <select name="deepseek_model">
+                            <option value="deepseek-chat" <?php selected(get_option('deepseek_model'), 'deepseek-chat'); ?>>DeepSeek Chat</option>
+                            <option value="deepseek-coder" <?php selected(get_option('deepseek_model'), 'deepseek-coder'); ?>>DeepSeek Coder</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Temperatura (0.0 - 2.0)</th>
+                    <td>
+                        <input type="number" name="ai_temperature" value="<?php echo esc_attr(get_option('ai_temperature', '0.7')); ?>" min="0" max="2" step="0.1" />
+                        <p class="description">Controla la creatividad. Valores más altos = más creatividad</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Máximo de tokens</th>
+                    <td>
+                        <input type="number" name="ai_max_tokens" value="<?php echo esc_attr(get_option('ai_max_tokens', '2000')); ?>" min="100" max="4000" />
+                        <p class="description">Máximo número de tokens en la respuesta</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Top P (0.0 - 1.0)</th>
+                    <td>
+                        <input type="number" name="ai_top_p" value="<?php echo esc_attr(get_option('ai_top_p', '1.0')); ?>" min="0" max="1" step="0.1" />
+                        <p class="description">Controla la diversidad de respuestas</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Penalización por frecuencia</th>
+                    <td>
+                        <input type="number" name="ai_frequency_penalty" value="<?php echo esc_attr(get_option('ai_frequency_penalty', '0.0')); ?>" min="-2" max="2" step="0.1" />
+                        <p class="description">Reduce la repetición de palabras</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Penalización por presencia</th>
+                    <td>
+                        <input type="number" name="ai_presence_penalty" value="<?php echo esc_attr(get_option('ai_presence_penalty', '0.0')); ?>" min="-2" max="2" step="0.1" />
+                        <p class="description">Fomenta hablar sobre nuevos temas</p>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+        
+        <?php } elseif ($active_tab == 'content') { ?>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('my_plugin_content_settings_group');
+            do_settings_sections('my_plugin_content_settings_group');
+            ?>
+            <h2>Configuración de Contenido</h2>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Prompt base</th>
+                    <td>
+                        <textarea name="auto_post_prompt" rows="4" cols="80"><?php echo esc_textarea(get_option('auto_post_prompt', 'Escribe un post sobre un tema relevante.')); ?></textarea>
+                        <p class="description">Instrucciones base para generar el contenido</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Número de palabras</th>
+                    <td>
+                        <input type="number" name="auto_post_word_count" value="<?php echo esc_attr(get_option('auto_post_word_count', '500')); ?>" min="100" max="3000" />
+                        <p class="description">Número aproximado de palabras del artículo</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Estilo de escritura</th>
+                    <td>
+                        <select name="writing_style">
+                            <option value="informativo" <?php selected(get_option('writing_style'), 'informativo'); ?>>Informativo</option>
+                            <option value="conversacional" <?php selected(get_option('writing_style'), 'conversacional'); ?>>Conversacional</option>
+                            <option value="técnico" <?php selected(get_option('writing_style'), 'técnico'); ?>>Técnico</option>
+                            <option value="creativo" <?php selected(get_option('writing_style'), 'creativo'); ?>>Creativo</option>
+                            <option value="académico" <?php selected(get_option('writing_style'), 'académico'); ?>>Académico</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Audiencia objetivo</th>
+                    <td>
+                        <select name="target_audience">
+                            <option value="general" <?php selected(get_option('target_audience'), 'general'); ?>>General</option>
+                            <option value="principiantes" <?php selected(get_option('target_audience'), 'principiantes'); ?>>Principiantes</option>
+                            <option value="intermedio" <?php selected(get_option('target_audience'), 'intermedio'); ?>>Intermedio</option>
+                            <option value="expertos" <?php selected(get_option('target_audience'), 'expertos'); ?>>Expertos</option>
+                            <option value="profesionales" <?php selected(get_option('target_audience'), 'profesionales'); ?>>Profesionales</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Tono</th>
+                    <td>
+                        <select name="tone">
+                            <option value="profesional" <?php selected(get_option('tone'), 'profesional'); ?>>Profesional</option>
+                            <option value="amigable" <?php selected(get_option('tone'), 'amigable'); ?>>Amigable</option>
+                            <option value="serio" <?php selected(get_option('tone'), 'serio'); ?>>Serio</option>
+                            <option value="humorístico" <?php selected(get_option('tone'), 'humorístico'); ?>>Humorístico</option>
+                            <option value="inspirador" <?php selected(get_option('tone'), 'inspirador'); ?>>Inspirador</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Incluir FAQ</th>
+                    <td>
+                        <select name="include_faq">
+                            <option value="yes" <?php selected(get_option('include_faq'), 'yes'); ?>>Sí</option>
+                            <option value="no" <?php selected(get_option('include_faq'), 'no'); ?>>No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Incluir listas</th>
+                    <td>
+                        <select name="include_lists">
+                            <option value="yes" <?php selected(get_option('include_lists'), 'yes'); ?>>Sí</option>
+                            <option value="no" <?php selected(get_option('include_lists'), 'no'); ?>>No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Enfoque SEO</th>
+                    <td>
+                        <select name="seo_focus">
+                            <option value="low" <?php selected(get_option('seo_focus'), 'low'); ?>>Bajo</option>
+                            <option value="medium" <?php selected(get_option('seo_focus'), 'medium'); ?>>Medio</option>
+                            <option value="high" <?php selected(get_option('seo_focus'), 'high'); ?>>Alto</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Longitud máxima del título</th>
+                    <td>
+                        <input type="number" name="title_max_length" value="<?php echo esc_attr(get_option('title_max_length', '60')); ?>" min="30" max="100" />
+                        <p class="description">Caracteres máximos para el título SEO</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Instrucciones personalizadas</th>
+                    <td>
+                        <textarea name="custom_instructions" rows="3" cols="80"><?php echo esc_textarea(get_option('custom_instructions', '')); ?></textarea>
+                        <p class="description">Instrucciones adicionales para personalizar el contenido</p>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+
+        <?php } elseif ($active_tab == 'scheduling') { ?>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('my_plugin_scheduling_settings_group');
+            do_settings_sections('my_plugin_scheduling_settings_group');
+            ?>
+            <h2>Configuración de Programación</h2>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Activar programación automática</th>
+                    <td>
+                        <select name="auto_scheduling_enabled">
+                            <option value="no" <?php selected(get_option('auto_scheduling_enabled'), 'no'); ?>>No</option>
+                            <option value="yes" <?php selected(get_option('auto_scheduling_enabled'), 'yes'); ?>>Sí</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Frecuencia de publicación</th>
+                    <td>
+                        <select name="posting_frequency">
+                            <option value="daily" <?php selected(get_option('posting_frequency'), 'daily'); ?>>Diario</option>
+                            <option value="weekly" <?php selected(get_option('posting_frequency'), 'weekly'); ?>>Semanal</option>
+                            <option value="biweekly" <?php selected(get_option('posting_frequency'), 'biweekly'); ?>>Quincenal</option>
+                            <option value="monthly" <?php selected(get_option('posting_frequency'), 'monthly'); ?>>Mensual</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Hora de publicación</th>
+                    <td>
+                        <input type="time" name="posting_time" value="<?php echo esc_attr(get_option('posting_time', '09:00')); ?>" />
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Día de la semana (para semanal)</th>
+                    <td>
+                        <select name="posting_day">
+                            <option value="monday" <?php selected(get_option('posting_day'), 'monday'); ?>>Lunes</option>
+                            <option value="tuesday" <?php selected(get_option('posting_day'), 'tuesday'); ?>>Martes</option>
+                            <option value="wednesday" <?php selected(get_option('posting_day'), 'wednesday'); ?>>Miércoles</option>
+                            <option value="thursday" <?php selected(get_option('posting_day'), 'thursday'); ?>>Jueves</option>
+                            <option value="friday" <?php selected(get_option('posting_day'), 'friday'); ?>>Viernes</option>
+                            <option value="saturday" <?php selected(get_option('posting_day'), 'saturday'); ?>>Sábado</option>
+                            <option value="sunday" <?php selected(get_option('posting_day'), 'sunday'); ?>>Domingo</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Lista de temas para generación automática</th>
+                    <td>
+                        <textarea name="auto_topics_list" rows="5" cols="80" placeholder="Introduce temas separados por líneas"><?php echo esc_textarea(get_option('auto_topics_list', '')); ?></textarea>
+                        <p class="description">Lista de temas que se usarán de forma rotatoria para la generación automática (se usarán solo si no hay ideas guardadas)</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Eliminar ideas usadas automáticamente</th>
+                    <td>
+                        <select name="auto_delete_used_ideas">
+                            <option value="no" <?php selected(get_option('auto_delete_used_ideas'), 'no'); ?>>No</option>
+                            <option value="yes" <?php selected(get_option('auto_delete_used_ideas'), 'yes'); ?>>Sí</option>
+                        </select>
+                        <p class="description">Eliminar automáticamente las ideas después de generar posts con ellas</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Estadísticas de Ideas</th>
+                    <td>
+                        <?php 
+                        $stats = get_post_ideas_stats();
+                        echo '<div style="background: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 10px;">';
+                        echo '<strong>Total de ideas:</strong> ' . $stats['total'] . '<br>';
+                        echo '<strong>Con palabra clave:</strong> ' . $stats['with_keywords'] . '<br>';
+                        echo '<strong>Sin palabra clave:</strong> ' . $stats['without_keywords'] . '<br><br>';
+                        echo '<a href="' . admin_url('edit.php?post_type=post_idea') . '" class="button button-secondary">Gestionar Ideas</a>';
+                        echo '</div>';
+                        ?>
+                        <p class="description">La programación automática prioriza las ideas guardadas sobre los temas de la lista</p>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+        
+        <?php } elseif ($active_tab == 'ideas') { ?>
+        <h2>Generador de Ideas para Posts</h2>
+        
+        <div style="background: #e7f3ff; border: 1px solid #b3d9ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">📝 Resumen de Ideas</h3>
+            <?php 
+            $stats = get_post_ideas_stats();
+            echo '<p><strong>Total de ideas guardadas:</strong> ' . $stats['total'] . '</p>';
+            echo '<p><strong>Ideas con palabra clave:</strong> ' . $stats['with_keywords'] . ' | <strong>Sin palabra clave:</strong> ' . $stats['without_keywords'] . '</p>';
+            echo '<p><a href="' . admin_url('edit.php?post_type=post_idea') . '" class="button button-secondary">📋 Gestionar Todas las Ideas</a></p>';
+            ?>
+        </div>
+        
+        <h3>Opción 1: Generar Ideas desde Tema</h3>
+        <form method="post">
+            <?php wp_nonce_field('generate_ideas', 'generate_ideas_nonce'); ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Tema principal</th>
+                    <td>
+                        <input type="text" name="main_topic" value="<?php echo isset($_POST['main_topic']) ? esc_attr($_POST['main_topic']) : ''; ?>" style="width: 400px;" placeholder="Ej: Marketing Digital, Cocina Saludable, Tecnología" />
+                        <p class="description">Tema general sobre el cual generar ideas específicas</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Número de ideas</th>
+                    <td>
+                        <select name="ideas_count">
+                            <option value="5" <?php selected(isset($_POST['ideas_count']) ? $_POST['ideas_count'] : '5', '5'); ?>>5 ideas</option>
+                            <option value="10" <?php selected(isset($_POST['ideas_count']) ? $_POST['ideas_count'] : '10', '10'); ?>>10 ideas</option>
+                            <option value="15" <?php selected(isset($_POST['ideas_count']) ? $_POST['ideas_count'] : '15', '15'); ?>>15 ideas</option>
+                            <option value="20" <?php selected(isset($_POST['ideas_count']) ? $_POST['ideas_count'] : '20', '20'); ?>>20 ideas</option>
+                        </select>
+                        <p class="description">Cada idea se guardará como un elemento individual que podrás gestionar</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Tipo de contenido</th>
+                    <td>
+                        <select name="content_type">
+                            <option value="general" <?php selected(isset($_POST['content_type']) ? $_POST['content_type'] : 'general', 'general'); ?>>General</option>
+                            <option value="tutorial" <?php selected(isset($_POST['content_type']) ? $_POST['content_type'] : 'tutorial', 'tutorial'); ?>>Tutorial</option>
+                            <option value="lista" <?php selected(isset($_POST['content_type']) ? $_POST['content_type'] : 'lista', 'lista'); ?>>Lista</option>
+                            <option value="comparacion" <?php selected(isset($_POST['content_type']) ? $_POST['content_type'] : 'comparacion', 'comparacion'); ?>>Comparación</option>
+                            <option value="noticias" <?php selected(isset($_POST['content_type']) ? $_POST['content_type'] : 'noticias', 'noticias'); ?>>Noticias</option>
+                        </select>
+                        <p class="description">Tipo de contenido que determinará el enfoque de las ideas</p>
+                    </td>
+                </tr>
+            </table>
+            <p class="submit">
+                <input type="submit" name="generate_ideas" class="button-primary" value="🚀 Generar y Guardar Ideas">
+            </p>
+        </form>
+        
+        <hr style="margin: 30px 0;">
+        
+        <h3>Opción 2: Generar Ideas desde Artículo de Referencia</h3>
+        <form method="post">
+            <?php wp_nonce_field('generate_ideas_from_article', 'generate_ideas_from_article_nonce'); ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Artículo de referencia</th>
+                    <td>
+                        <textarea name="reference_article" rows="8" cols="80" placeholder="Pega aquí un artículo completo del cual quieres generar ideas relacionadas"><?php echo isset($_POST['reference_article']) ? esc_textarea($_POST['reference_article']) : ''; ?></textarea>
+                        <p class="description">El sistema analizará el artículo y generará ideas de posts relacionadas</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Número de ideas</th>
+                    <td>
+                        <select name="ideas_count_article">
+                            <option value="5" <?php selected(isset($_POST['ideas_count_article']) ? $_POST['ideas_count_article'] : '5', '5'); ?>>5 ideas</option>
+                            <option value="10" <?php selected(isset($_POST['ideas_count_article']) ? $_POST['ideas_count_article'] : '10', '10'); ?>>10 ideas</option>
+                            <option value="15" <?php selected(isset($_POST['ideas_count_article']) ? $_POST['ideas_count_article'] : '15', '15'); ?>>15 ideas</option>
+                        </select>
+                        <p class="description">Ideas relacionadas que se generarán basándose en el artículo</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Enfoque de las ideas</th>
+                    <td>
+                        <select name="article_approach">
+                            <option value="related" <?php selected(isset($_POST['article_approach']) ? $_POST['article_approach'] : 'related', 'related'); ?>>Temas relacionados</option>
+                            <option value="expanded" <?php selected(isset($_POST['article_approach']) ? $_POST['article_approach'] : 'expanded', 'expanded'); ?>>Ampliación de conceptos</option>
+                            <option value="alternative" <?php selected(isset($_POST['article_approach']) ? $_POST['article_approach'] : 'alternative', 'alternative'); ?>>Enfoques alternativos</option>
+                            <option value="practical" <?php selected(isset($_POST['article_approach']) ? $_POST['article_approach'] : 'practical', 'practical'); ?>>Aplicaciones prácticas</option>
+                        </select>
+                        <p class="description">Tipo de enfoque para las ideas generadas</p>
+                    </td>
+                </tr>
+            </table>
+            <p class="submit">
+                <input type="submit" name="generate_ideas_from_article" class="button-primary" value="📝 Generar Ideas desde Artículo">
+            </p>
+        </form>
+        
+        <?php
+        if (isset($_POST['generate_ideas']) && check_admin_referer('generate_ideas', 'generate_ideas_nonce')) {
+            $main_topic = sanitize_text_field($_POST['main_topic']);
+            $ideas_count = absint($_POST['ideas_count']);
+            $content_type = sanitize_text_field($_POST['content_type']);
+            
+            if ($main_topic) {
+                $result = generate_post_ideas($main_topic, $ideas_count, $content_type);
+                if ($result) {
+                    echo '<div class="notice notice-success"><p>' . $result . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-error"><p>Error al generar ideas. Verifica tu configuración de API.</p></div>';
+                }
+            } else {
+                echo '<div class="notice notice-warning"><p>Por favor, introduce un tema principal.</p></div>';
+            }
+        }
+        
+        if (isset($_POST['generate_ideas_from_article']) && check_admin_referer('generate_ideas_from_article', 'generate_ideas_from_article_nonce')) {
+            $reference_article = sanitize_textarea_field($_POST['reference_article']);
+            $ideas_count = absint($_POST['ideas_count_article']);
+            $approach = sanitize_text_field($_POST['article_approach']);
+            
+            if ($reference_article) {
+                $result = generate_ideas_from_article($reference_article, $ideas_count, $approach);
+                if ($result) {
+                    echo '<div class="notice notice-success"><p>' . $result . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-error"><p>Error al generar ideas desde el artículo. Verifica tu configuración de API.</p></div>';
+                }
+            } else {
+                echo '<div class="notice notice-warning"><p>Por favor, introduce un artículo de referencia.</p></div>';
+            }
+        }
+        ?>
+        
+        <h3>Ideas Guardadas Recientemente</h3>
+        <?php
+        $recent_ideas = get_posts([
+            'post_type' => 'post_idea',
+            'numberposts' => 5,
+            'post_status' => 'publish',
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ]);
+        
+        if ($recent_ideas) {
+            echo '<div class="recent-ideas-list">';
+            echo '<table class="wp-list-table widefat fixed striped">';
+            echo '<thead><tr><th>Idea</th><th>Tema</th><th>Palabra Clave</th><th>Acciones</th></tr></thead>';
+            echo '<tbody>';
+            
+            foreach ($recent_ideas as $idea) {
+                $topic = get_post_meta($idea->ID, '_post_idea_topic', true);
+                $keyword = get_post_meta($idea->ID, '_post_idea_keyword', true);
+                
+                echo '<tr>';
+                echo '<td><strong>' . esc_html($idea->post_title) . '</strong></td>';
+                echo '<td>' . esc_html($topic) . '</td>';
+                echo '<td>' . ($keyword ? esc_html($keyword) : '<em>No definida</em>') . '</td>';
+                echo '<td>';
+                echo '<a href="' . admin_url('admin.php?page=auto-post-generator-pro&tab=create&idea_id=' . $idea->ID) . '" class="button button-small">Generar Post</a> ';
+                echo '<a href="' . admin_url('edit.php?post_type=post_idea') . '" class="button button-small">Ver Todas</a>';
+                echo '</td>';
+                echo '</tr>';
+            }
+            
+            echo '</tbody></table>';
+            echo '</div>';
+        } else {
+            echo '<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; text-align: center; margin-top: 20px;">';
+            echo '<h3>💡 No hay ideas guardadas aún</h3>';
+            echo '<p>Genera algunas ideas arriba para empezar a crear tu banco de contenido.</p>';
+            echo '<a href="#" onclick="document.getElementById(\'main_topic\').focus(); return false;" class="button button-secondary">Generar Ideas por Tema</a> ';
+            echo '<a href="#" onclick="document.getElementById(\'reference_article\').focus(); return false;" class="button button-secondary">Generar Ideas por Artículo</a>';
+            echo '</div>';
+        }
+        ?>
+        
+        <?php } elseif ($active_tab == 'create') { ?>
+        <h2>Crear post ahora</h2>
+        <form method="post">
+            <?php wp_nonce_field('create_post_now', 'create_post_nonce'); ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Prompt personalizado</th>
+                    <td>
+                        <textarea name="custom_prompt" rows="3" cols="80" placeholder="Deja vacío para usar la configuración por defecto"><?php 
+                        if ($idea_post) {
+                            echo esc_textarea($idea_post->post_title);
+                        } else {
+                            echo isset($_POST['custom_prompt']) ? esc_textarea($_POST['custom_prompt']) : '';
+                        }
+                        ?></textarea>
+                        <?php if ($idea_post) { ?>
+                        <p class="description">Prompt obtenido de la idea seleccionada. Puedes modificarlo si lo deseas.</p>
+                        <?php } ?>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Palabra clave principal</th>
+                    <td>
+                        <input type="text" name="keyword" value="<?php echo esc_attr($idea_keyword); ?>" style="width: 400px;" placeholder="Ej: marketing digital, SEO, WordPress" />
+                        <p class="description">Palabra clave para enfocar el contenido del post (opcional)</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Proveedor de IA</th>
+                    <td>
+                        <select name="ai_provider_custom">
+                            <option value="" <?php selected(isset($_POST['ai_provider_custom']) ? $_POST['ai_provider_custom'] : '', ''); ?>>Usar configuración por defecto</option>
+                            <option value="openai" <?php selected(isset($_POST['ai_provider_custom']) ? $_POST['ai_provider_custom'] : 'openai', 'openai'); ?>>OpenAI</option>
+                            <option value="deepseek" <?php selected(isset($_POST['ai_provider_custom']) ? $_POST['ai_provider_custom'] : 'deepseek', 'deepseek'); ?>>DeepSeek</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Categoría</th>
+                    <td>
+                        <?php
+                        $categories = get_categories(['hide_empty' => false]);
+                        $selected_category = isset($_POST['category_custom']) ? $_POST['category_custom'] : get_option('auto_post_category', 1);
+                        ?>
+                        <select name="category_custom">
+                            <option value="" <?php selected(isset($_POST['category_custom']) ? $_POST['category_custom'] : '', ''); ?>>Usar configuración por defecto</option>
+                            <?php foreach ($categories as $category) { ?>
+                                <option value="<?php echo esc_attr($category->term_id); ?>" <?php selected($selected_category, $category->term_id); ?>>
+                                    <?php echo esc_html($category->name); ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Artículo de referencia</th>
+                    <td>
+                        <textarea name="source_article" rows="5" cols="80" placeholder="Pega aquí un artículo de referencia para crear contenido basado en él (opcional)"><?php echo isset($_POST['source_article']) ? esc_textarea($_POST['source_article']) : ''; ?></textarea>
+                        <p class="description">Si proporcionas un artículo de referencia, se generará contenido basado en él manteniendo las ideas principales pero con enfoque único</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Fecha y hora de publicación</th>
+                    <td>
+                        <input type="datetime-local" name="post_date" value="<?php echo esc_attr(date('Y-m-d\TH:i')); ?>" />
+                        <p class="description">Fecha y hora para publicar el post</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Estado del post</th>
+                    <td>
+                        <select name="post_status_custom">
+                            <option value="" <?php selected(isset($_POST['post_status_custom']) ? $_POST['post_status_custom'] : '', ''); ?>>Usar configuración por defecto</option>
+                            <option value="draft" <?php selected(isset($_POST['post_status_custom']) ? $_POST['post_status_custom'] : 'draft', 'draft'); ?>>Borrador</option>
+                            <option value="publish" <?php selected(isset($_POST['post_status_custom']) ? $_POST['post_status_custom'] : 'publish', 'publish'); ?>>Publicar</option>
+                            <option value="future" <?php selected(isset($_POST['post_status_custom']) ? $_POST['post_status_custom'] : 'future', 'future'); ?>>Programado</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <input type="submit" name="create_now" class="button-primary" value="Crear ahora">
+        </form>
+        
+        <?php
+        // Manejar generación desde idea
+        $idea_id = isset($_GET['idea_id']) ? absint($_GET['idea_id']) : 0;
+        $idea_post = null;
+        $idea_keyword = '';
+        
+        if ($idea_id) {
+            $idea_post = get_post($idea_id);
+            if ($idea_post && $idea_post->post_type === 'post_idea') {
+                $idea_keyword = get_post_meta($idea_id, '_post_idea_keyword', true);
+                echo '<div class="notice notice-info"><p><strong>Generando post basado en la idea:</strong> ' . esc_html($idea_post->post_title) . '</p></div>';
+            }
+        }
+        
+        if (isset($_POST['create_now']) && check_admin_referer('create_post_now', 'create_post_nonce')) {
+            $prompt = !empty($_POST['custom_prompt']) ? sanitize_textarea_field($_POST['custom_prompt']) : get_option('auto_post_prompt', 'Escribe un post sobre un tema relevante.');
+            $category_id = !empty($_POST['category_custom']) ? absint($_POST['category_custom']) : get_option('auto_post_category', 1);
+            $tags = explode(',', get_option('auto_post_tags', ''));
+            $post_status = !empty($_POST['post_status_custom']) ? sanitize_text_field($_POST['post_status_custom']) : get_option('auto_post_status', 'publish');
+            $word_count = get_option('auto_post_word_count', '500');
+            $post_date = isset($_POST['post_date']) ? sanitize_text_field($_POST['post_date']) : current_time('mysql');
+            $ai_provider = !empty($_POST['ai_provider_custom']) ? sanitize_text_field($_POST['ai_provider_custom']) : get_option('ai_provider', 'openai');
+            $keyword = isset($_POST['keyword']) ? sanitize_text_field($_POST['keyword']) : '';
+            $source_article = isset($_POST['source_article']) ? sanitize_textarea_field($_POST['source_article']) : '';
+            
+            // Si se está generando desde una idea, usar el título de la idea como prompt
+            if ($idea_id && $idea_post) {
+                $prompt = $idea_post->post_title;
+                if (!$keyword && $idea_keyword) {
+                    $keyword = $idea_keyword;
+                }
+            }
+
+            $message = generate_and_publish_post($prompt, $category_id, $tags, $post_status, $post_date, $word_count, $ai_provider, [], $keyword, $source_article);
+            echo "<div class='notice notice-info'><p>" . esc_html($message) . "</p></div>";
+            
+            // Si se generó desde una idea, opcionalmente eliminar la idea
+            if ($idea_id && $idea_post) {
+                echo '<div class="notice notice-warning">';
+                echo '<p>Post generado desde la idea. ';
+                $delete_url = wp_nonce_url(admin_url('admin.php?page=auto-post-generator-pro&tab=create&delete_idea=' . $idea_id), 'delete_idea_' . $idea_id);
+                echo '<a href="' . $delete_url . '" onclick="return confirm(\'\u00bfDeseas eliminar esta idea ya que se ha usado para generar el post?\')" class="button button-small">Eliminar Idea Usada</a>';
+                echo '</p>';
+                echo '</div>';
+            }
+        }
+        
+        // Manejar eliminación de idea
+        if (isset($_GET['delete_idea'])) {
+            $delete_id = absint($_GET['delete_idea']);
+            $nonce = isset($_GET['_wpnonce']) ? $_GET['_wpnonce'] : '';
+            
+            if (wp_verify_nonce($nonce, 'delete_idea_' . $delete_id)) {
+                if (wp_delete_post($delete_id, true)) {
+                    echo '<div class="notice notice-success"><p>Idea eliminada correctamente.</p></div>';
+                    // Limpiar la URL para evitar eliminaciones accidentales
+                    echo '<script>window.history.replaceState({}, document.title, "' . admin_url('admin.php?page=auto-post-generator-pro&tab=create') . '");</script>';
+                } else {
+                    echo '<div class="notice notice-error"><p>Error al eliminar la idea.</p></div>';
+                }
+            } else {
+                echo '<div class="notice notice-error"><p>Error de seguridad al eliminar la idea.</p></div>';
+            }
+        }
+        ?>
+        
+        <?php } ?>
+    </div>
+    
+    <style>
+    .nav-tab-wrapper {
+        margin-bottom: 20px;
+    }
+    .form-table th {
+        width: 200px;
+    }
+    .form-table td input[type="text"],
+    .form-table td input[type="password"],
+    .form-table td textarea {
+        width: 400px;
+    }
+    .form-table td select {
+        min-width: 200px;
+    }
+    .notice h3 {
+        margin-top: 0;
+    }
+    .recent-ideas-list {
+        margin-top: 20px;
+    }
+    .recent-ideas-list table {
+        margin-top: 10px;
+    }
+    .recent-ideas-list td {
+        vertical-align: middle;
+    }
+    .button.button-small {
+        font-size: 11px;
+        height: auto;
+        line-height: 1.5;
+        padding: 2px 6px;
+    }
+    </style>
+    <?php
+}
+
+// Registrar configuraciones
+function register_my_plugin_settings() {
+    // Configuración general
+    register_setting('my_plugin_settings_group', 'ai_provider', 'sanitize_text_field');
+    register_setting('my_plugin_settings_group', 'openai_api_key', 'sanitize_text_field');
+    register_setting('my_plugin_settings_group', 'deepseek_api_key', 'sanitize_text_field');
+    register_setting('my_plugin_settings_group', 'auto_post_category', 'absint');
+    register_setting('my_plugin_settings_group', 'auto_post_tags', 'sanitize_text_field');
+    register_setting('my_plugin_settings_group', 'auto_post_status', 'sanitize_text_field');
+    
+    // Configuración IA
+    register_setting('my_plugin_ai_settings_group', 'openai_model', 'sanitize_text_field');
+    register_setting('my_plugin_ai_settings_group', 'deepseek_model', 'sanitize_text_field');
+    register_setting('my_plugin_ai_settings_group', 'ai_temperature', 'sanitize_text_field');
+    register_setting('my_plugin_ai_settings_group', 'ai_max_tokens', 'absint');
+    register_setting('my_plugin_ai_settings_group', 'ai_top_p', 'sanitize_text_field');
+    register_setting('my_plugin_ai_settings_group', 'ai_frequency_penalty', 'sanitize_text_field');
+    register_setting('my_plugin_ai_settings_group', 'ai_presence_penalty', 'sanitize_text_field');
+    
+    // Configuración contenido
+    register_setting('my_plugin_content_settings_group', 'auto_post_prompt', 'sanitize_textarea_field');
+    register_setting('my_plugin_content_settings_group', 'auto_post_word_count', 'absint');
+    register_setting('my_plugin_content_settings_group', 'writing_style', 'sanitize_text_field');
+    register_setting('my_plugin_content_settings_group', 'target_audience', 'sanitize_text_field');
+    register_setting('my_plugin_content_settings_group', 'tone', 'sanitize_text_field');
+    register_setting('my_plugin_content_settings_group', 'include_faq', 'sanitize_text_field');
+    register_setting('my_plugin_content_settings_group', 'include_lists', 'sanitize_text_field');
+    register_setting('my_plugin_content_settings_group', 'seo_focus', 'sanitize_text_field');
+    register_setting('my_plugin_content_settings_group', 'title_max_length', 'absint');
+    register_setting('my_plugin_content_settings_group', 'custom_instructions', 'sanitize_textarea_field');
+    
+    // Configuración programación
+    register_setting('my_plugin_scheduling_settings_group', 'auto_scheduling_enabled', 'sanitize_text_field');
+    register_setting('my_plugin_scheduling_settings_group', 'posting_frequency', 'sanitize_text_field');
+    register_setting('my_plugin_scheduling_settings_group', 'posting_time', 'sanitize_text_field');
+    register_setting('my_plugin_scheduling_settings_group', 'posting_day', 'sanitize_text_field');
+    register_setting('my_plugin_scheduling_settings_group', 'auto_topics_list', 'sanitize_textarea_field');
+    register_setting('my_plugin_scheduling_settings_group', 'auto_delete_used_ideas', 'sanitize_text_field');
+}
+add_action('admin_init', 'register_my_plugin_settings');
+
+// Registrar custom post type para ideas de posts
+function register_post_ideas_cpt() {
+    $labels = array(
+        'name'                  => 'Ideas de Posts',
+        'singular_name'         => 'Idea de Post',
+        'menu_name'             => 'Ideas de Posts',
+        'name_admin_bar'        => 'Idea de Post',
+        'archives'              => 'Archivo de Ideas',
+        'attributes'            => 'Atributos de Idea',
+        'parent_item_colon'     => 'Idea Padre:',
+        'all_items'             => 'Todas las Ideas',
+        'add_new_item'          => 'Añadir Nueva Idea',
+        'add_new'               => 'Añadir Nueva',
+        'new_item'              => 'Nueva Idea',
+        'edit_item'             => 'Editar Idea',
+        'update_item'           => 'Actualizar Idea',
+        'view_item'             => 'Ver Idea',
+        'view_items'            => 'Ver Ideas',
+        'search_items'          => 'Buscar Ideas',
+        'not_found'             => 'No se encontraron ideas',
+        'not_found_in_trash'    => 'No se encontraron ideas en la papelera',
+        'featured_image'        => 'Imagen Destacada',
+        'set_featured_image'    => 'Establecer imagen destacada',
+        'remove_featured_image' => 'Eliminar imagen destacada',
+        'use_featured_image'    => 'Usar como imagen destacada',
+        'insert_into_item'      => 'Insertar en idea',
+        'uploaded_to_this_item' => 'Subido a esta idea',
+        'items_list'            => 'Lista de ideas',
+        'items_list_navigation' => 'Navegación de lista de ideas',
+        'filter_items_list'     => 'Filtrar lista de ideas',
+    );
+    
+    $args = array(
+        'label'                 => 'Idea de Post',
+        'description'           => 'Ideas generadas para posts',
+        'labels'                => $labels,
+        'supports'              => array('title', 'editor', 'custom-fields'),
+        'hierarchical'          => false,
+        'public'                => false,
+        'show_ui'               => true,
+        'show_in_menu'          => 'auto-post-generator-pro',
+        'menu_position'         => 5,
+        'show_in_admin_bar'     => false,
+        'show_in_nav_menus'     => false,
+        'can_export'            => true,
+        'has_archive'           => false,
+        'exclude_from_search'   => true,
+        'publicly_queryable'    => false,
+        'capability_type'       => 'post',
+        'show_in_rest'          => false,
+    );
+    
+    register_post_type('post_idea', $args);
+}
+add_action('init', 'register_post_ideas_cpt');
+
+// Añadir meta boxes para ideas de posts
+function add_post_idea_meta_boxes() {
+    add_meta_box(
+        'post_idea_details',
+        'Detalles de la Idea',
+        'post_idea_meta_box_callback',
+        'post_idea',
+        'normal',
+        'default'
+    );
+    
+    add_meta_box(
+        'post_idea_actions',
+        'Acciones',
+        'post_idea_actions_meta_box_callback',
+        'post_idea',
+        'side',
+        'default'
+    );
+}
+add_action('add_meta_boxes', 'add_post_idea_meta_boxes');
+
+// Callback para meta box de detalles
+function post_idea_meta_box_callback($post) {
+    wp_nonce_field('post_idea_meta_box', 'post_idea_meta_box_nonce');
+    
+    $topic = get_post_meta($post->ID, '_post_idea_topic', true);
+    $keyword = get_post_meta($post->ID, '_post_idea_keyword', true);
+    $content_type = get_post_meta($post->ID, '_post_idea_content_type', true);
+    $generated_date = get_post_meta($post->ID, '_post_idea_generated_date', true);
+    
+    ?>
+    <table class="form-table">
+        <tr>
+            <th><label for="post_idea_topic">Tema Original:</label></th>
+            <td><input type="text" id="post_idea_topic" name="post_idea_topic" value="<?php echo esc_attr($topic); ?>" style="width: 100%;" readonly /></td>
+        </tr>
+        <tr>
+            <th><label for="post_idea_keyword">Palabra Clave:</label></th>
+            <td>
+                <input type="text" id="post_idea_keyword" name="post_idea_keyword" value="<?php echo esc_attr($keyword); ?>" style="width: 100%;" placeholder="Ej: marketing digital, SEO, WordPress" />
+                <p class="description">Palabra clave principal para enfocar el contenido del post</p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="post_idea_content_type">Tipo de Contenido:</label></th>
+            <td><input type="text" id="post_idea_content_type" name="post_idea_content_type" value="<?php echo esc_attr($content_type); ?>" style="width: 100%;" readonly /></td>
+        </tr>
+        <tr>
+            <th><label for="post_idea_generated_date">Fecha de Generación:</label></th>
+            <td><input type="text" id="post_idea_generated_date" name="post_idea_generated_date" value="<?php echo esc_attr($generated_date); ?>" style="width: 100%;" readonly /></td>
+        </tr>
+    </table>
+    <?php
+}
+
+// Callback para meta box de acciones
+function post_idea_actions_meta_box_callback($post) {
+    ?>
+    <div style="text-align: center; padding: 20px;">
+        <a href="<?php echo admin_url('admin.php?page=auto-post-generator-pro&tab=create&idea_id=' . $post->ID); ?>" class="button button-primary button-large" style="width: 100%; margin-bottom: 10px;">
+            🚀 Generar Post con esta Idea
+        </a>
+        <p class="description">Crea un post completo basado en esta idea</p>
+    </div>
+    <?php
+}
+
+// Guardar meta datos de ideas
+function save_post_idea_meta_data($post_id) {
+    if (!isset($_POST['post_idea_meta_box_nonce']) || !wp_verify_nonce($_POST['post_idea_meta_box_nonce'], 'post_idea_meta_box')) {
+        return;
+    }
+    
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+    
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+    
+    if (isset($_POST['post_idea_keyword'])) {
+        update_post_meta($post_id, '_post_idea_keyword', sanitize_text_field($_POST['post_idea_keyword']));
+    }
+}
+add_action('save_post', 'save_post_idea_meta_data');
+
+// Personalizar columnas en la lista de ideas
+function post_idea_columns($columns) {
+    $columns = array(
+        'cb' => $columns['cb'],
+        'title' => 'Título de la Idea',
+        'topic' => 'Tema Original',
+        'keyword' => 'Palabra Clave',
+        'content_type' => 'Tipo de Contenido',
+        'generated_date' => 'Fecha de Generación',
+        'actions' => 'Acciones'
+    );
+    return $columns;
+}
+add_filter('manage_post_idea_posts_columns', 'post_idea_columns');
+
+// Mostrar contenido de columnas personalizadas
+function post_idea_custom_column($column, $post_id) {
+    switch ($column) {
+        case 'topic':
+            echo esc_html(get_post_meta($post_id, '_post_idea_topic', true));
+            break;
+        case 'keyword':
+            $keyword = get_post_meta($post_id, '_post_idea_keyword', true);
+            echo $keyword ? esc_html($keyword) : '<span style="color: #999;">No definida</span>';
+            break;
+        case 'content_type':
+            echo esc_html(get_post_meta($post_id, '_post_idea_content_type', true));
+            break;
+        case 'generated_date':
+            echo esc_html(get_post_meta($post_id, '_post_idea_generated_date', true));
+            break;
+        case 'actions':
+            echo '<a href="' . admin_url('admin.php?page=auto-post-generator-pro&tab=create&idea_id=' . $post_id) . '" class="button button-primary">Generar Post</a>';
+            break;
+    }
+}
+add_action('manage_post_idea_posts_custom_column', 'post_idea_custom_column', 10, 2);
+
+// Hacer columnas ordenables
+function post_idea_sortable_columns($columns) {
+    $columns['topic'] = 'topic';
+    $columns['keyword'] = 'keyword';
+    $columns['content_type'] = 'content_type';
+    $columns['generated_date'] = 'generated_date';
+    return $columns;
+}
+add_filter('manage_edit-post_idea_sortable_columns', 'post_idea_sortable_columns');
+
+// Añadir estilos CSS para la interfaz
+function post_idea_admin_styles() {
+    $screen = get_current_screen();
+    if ($screen && ($screen->post_type === 'post_idea' || $screen->id === 'toplevel_page_auto-post-generator-pro')) {
+        ?>
+        <style>
+        .post-type-post_idea .column-actions {
+            width: 120px;
+        }
+        .post-type-post_idea .column-keyword {
+            width: 150px;
+        }
+        .post-type-post_idea .column-content_type {
+            width: 120px;
+        }
+        .post-type-post_idea .column-generated_date {
+            width: 120px;
+        }
+        
+        /* Estilos para la lista de ideas en el plugin */
+        .post-idea-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .post-idea-item h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .post-idea-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .post-idea-actions {
+            text-align: right;
+        }
+        
+        .post-idea-actions .button {
+            margin-left: 5px;
+        }
+        
+        .keyword-highlight {
+            background: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        </style>
+        <?php
+    }
+}
+add_action('admin_head', 'post_idea_admin_styles');
+
+// Añadir mensaje personalizado para el custom post type
+function post_idea_updated_messages($messages) {
+    $post = get_post();
+    $messages['post_idea'] = array(
+        0  => '',
+        1  => 'Idea actualizada.',
+        2  => 'Campo personalizado actualizado.',
+        3  => 'Campo personalizado eliminado.',
+        4  => 'Idea actualizada.',
+        5  => isset($_GET['revision']) ? 'Idea restaurada desde revisión' : false,
+        6  => 'Idea guardada.',
+        7  => 'Idea guardada.',
+        8  => 'Idea enviada.',
+        9  => 'Idea programada.',
+        10 => 'Borrador de idea actualizado.',
+    );
+    return $messages;
+}
+add_filter('post_updated_messages', 'post_idea_updated_messages');
+
+// Añadir acciones rápidas en la lista de ideas
+function post_idea_row_actions($actions, $post) {
+    if ($post->post_type === 'post_idea') {
+        $generate_url = admin_url('admin.php?page=auto-post-generator-pro&tab=create&idea_id=' . $post->ID);
+        $actions['generate_post'] = '<a href="' . $generate_url . '" title="Generar post basado en esta idea">Generar Post</a>';
+    }
+    return $actions;
+}
+add_filter('post_row_actions', 'post_idea_row_actions', 10, 2);
+
+// Añadir filtro para mostrar solo ideas no usadas (opcional)
+function post_idea_admin_filter() {
+    $screen = get_current_screen();
+    if ($screen && $screen->post_type === 'post_idea') {
+        $used_filter = isset($_GET['used_filter']) ? $_GET['used_filter'] : '';
+        
+        echo '<select name="used_filter" id="used_filter">';
+        echo '<option value="">Todas las ideas</option>';
+        echo '<option value="with_keyword"' . selected($used_filter, 'with_keyword', false) . '>Con palabra clave</option>';
+        echo '<option value="without_keyword"' . selected($used_filter, 'without_keyword', false) . '>Sin palabra clave</option>';
+        echo '</select>';
+    }
+}
+add_action('restrict_manage_posts', 'post_idea_admin_filter');
+
+// Aplicar filtro de ideas
+function post_idea_filter_query($query) {
+    global $pagenow;
+    
+    if ($pagenow === 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'post_idea') {
+        if (isset($_GET['used_filter']) && $_GET['used_filter'] !== '') {
+            $meta_query = array();
+            
+            if ($_GET['used_filter'] === 'with_keyword') {
+                $meta_query[] = array(
+                    'key' => '_post_idea_keyword',
+                    'value' => '',
+                    'compare' => '!='
+                );
+            } elseif ($_GET['used_filter'] === 'without_keyword') {
+                $meta_query[] = array(
+                    'relation' => 'OR',
+                    array(
+                        'key' => '_post_idea_keyword',
+                        'value' => '',
+                        'compare' => '='
+                    ),
+                    array(
+                        'key' => '_post_idea_keyword',
+                        'compare' => 'NOT EXISTS'
+                    )
+                );
+            }
+            
+            if (!empty($meta_query)) {
+                $query->set('meta_query', $meta_query);
+            }
+        }
+    }
+}
+add_action('pre_get_posts', 'post_idea_filter_query');
+
+// Función para generar ideas de posts y guardarlas como custom post type
+function generate_post_ideas($topic, $count, $content_type) {
+    $ai_provider = get_option('ai_provider', 'openai');
+    
+    if ($ai_provider === 'deepseek') {
+        $api_key = get_option('deepseek_api_key');
+        $endpoint = 'https://api.deepseek.com/v1/chat/completions';
+        $model = get_option('deepseek_model', 'deepseek-chat');
+    } else {
+        $api_key = get_option('openai_api_key');
+        $endpoint = 'https://api.openai.com/v1/chat/completions';
+        $model = get_option('openai_model', 'gpt-4');
+    }
+    
+    if (!$api_key) {
+        return false;
+    }
+    
+    $content_type_instructions = [
+        'general' => 'ideas generales de posts',
+        'tutorial' => 'tutoriales paso a paso',
+        'lista' => 'listas y compilaciones',
+        'comparacion' => 'comparaciones y reseñas',
+        'noticias' => 'noticias y actualizaciones'
+    ];
+    
+    $instruction = $content_type_instructions[$content_type] ?? 'ideas generales de posts';
+    
+    $prompt = "Genera {$count} {$instruction} sobre el tema '{$topic}'. ";
+    $prompt .= "Cada idea debe ser:";
+    $prompt .= "1. Específica y atractiva";
+    $prompt .= "2. Optimizada para SEO";
+    $prompt .= "3. Útil para la audiencia";
+    $prompt .= "4. Factible de escribir";
+    $prompt .= "Presenta cada idea como un título atractivo en una línea separada, sin numeración.";
+    
+    $data = [
+        'model' => $model,
+        'messages' => [
+            ['role' => 'system', 'content' => 'Eres un experto en marketing de contenidos que genera ideas creativas para posts de blog.'],
+            ['role' => 'user', 'content' => $prompt]
+        ],
+        'max_tokens' => 1000,
+        'temperature' => 0.8,
+    ];
+    
+    $response = wp_remote_post($endpoint, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ],
+        'body' => wp_json_encode($data),
+        'timeout' => 60,
+    ]);
+    
+    if (is_wp_error($response)) {
+        return false;
+    }
+    
+    $body = wp_remote_retrieve_body($response);
+    $result = json_decode($body, true);
+    
+    if (!isset($result['choices'][0]['message']['content'])) {
+        return false;
+    }
+    
+    $ideas_text = $result['choices'][0]['message']['content'];
+    $ideas_array = array_filter(explode("\n", $ideas_text));
+    
+    $saved_ideas = [];
+    $current_time = current_time('Y-m-d H:i:s');
+    
+    foreach ($ideas_array as $idea) {
+        $idea = trim($idea);
+        if (empty($idea)) continue;
+        
+        // Limpiar numeración si existe
+        $idea = preg_replace('/^\d+\.?\s*/', '', $idea);
+        $idea = trim($idea);
+        
+        if (empty($idea)) continue;
+        
+        // Crear post de idea
+        $post_data = [
+            'post_title' => $idea,
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'post_idea',
+            'post_author' => get_current_user_id(),
+        ];
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (!is_wp_error($post_id)) {
+            // Guardar meta datos
+            update_post_meta($post_id, '_post_idea_topic', $topic);
+            update_post_meta($post_id, '_post_idea_content_type', $content_type);
+            update_post_meta($post_id, '_post_idea_generated_date', $current_time);
+            
+            $saved_ideas[] = $post_id;
+        }
+    }
+    
+    if (!empty($saved_ideas)) {
+        $message = 'Se han generado y guardado ' . count($saved_ideas) . ' ideas de posts.';
+        $message .= ' <a href="' . admin_url('edit.php?post_type=post_idea') . '" class="button button-secondary">Ver Ideas Guardadas</a>';
+        return $message;
+    }
+    
+    return false;
+}
+
+// Programación automática de posts
+function schedule_automatic_posts() {
+    if (get_option('auto_scheduling_enabled') !== 'yes') {
+        return;
+    }
+    
+    $frequency = get_option('posting_frequency', 'weekly');
+    $time = get_option('posting_time', '09:00');
+    $day = get_option('posting_day', 'monday');
+    
+    // Calcular próxima fecha de publicación
+    $next_post_time = calculate_next_post_time($frequency, $time, $day);
+    
+    // Programar evento de WordPress
+    if (!wp_next_scheduled('auto_generate_post_hook')) {
+        wp_schedule_event($next_post_time, 'auto_post_interval', 'auto_generate_post_hook');
+    }
+}
+
+// Función para obtener estadísticas de ideas
+function get_post_ideas_stats() {
+    $total_ideas = wp_count_posts('post_idea');
+    $ideas_with_keywords = get_posts(array(
+        'post_type' => 'post_idea',
+        'numberposts' => -1,
+        'meta_query' => array(
+            array(
+                'key' => '_post_idea_keyword',
+                'value' => '',
+                'compare' => '!='
+            )
+        ),
+        'fields' => 'ids'
+    ));
+    
+    return array(
+        'total' => $total_ideas->publish,
+        'with_keywords' => count($ideas_with_keywords),
+        'without_keywords' => $total_ideas->publish - count($ideas_with_keywords)
+    );
+}
+
+// Calcular próxima fecha de publicación
+function calculate_next_post_time($frequency, $time, $day) {
+    $current_time = current_time('timestamp');
+    
+    switch ($frequency) {
+        case 'daily':
+            $next_time = strtotime('tomorrow ' . $time);
+            break;
+        case 'weekly':
+            $next_time = strtotime('next ' . $day . ' ' . $time);
+            break;
+        case 'biweekly':
+            $next_time = strtotime('+2 weeks ' . $day . ' ' . $time);
+            break;
+        case 'monthly':
+            $next_time = strtotime('+1 month ' . $time);
+            break;
+        default:
+            $next_time = strtotime('tomorrow ' . $time);
+    }
+    
+    return $next_time;
+}
+
+// Hook para generar post automáticamente
+function auto_generate_post() {
+    // Primero intentar usar ideas guardadas
+    $available_ideas = get_posts(array(
+        'post_type' => 'post_idea',
+        'numberposts' => 1,
+        'post_status' => 'publish',
+        'orderby' => 'rand'
+    ));
+    
+    if (!empty($available_ideas)) {
+        // Usar idea guardada
+        $idea = $available_ideas[0];
+        $prompt = $idea->post_title;
+        $keyword = get_post_meta($idea->ID, '_post_idea_keyword', true);
+        
+        $category_id = get_option('auto_post_category', 1);
+        $tags = explode(',', get_option('auto_post_tags', ''));
+        $post_status = get_option('auto_post_status', 'publish');
+        $word_count = get_option('auto_post_word_count', '500');
+        $ai_provider = get_option('ai_provider', 'openai');
+        
+        $result = generate_and_publish_post($prompt, $category_id, $tags, $post_status, current_time('mysql'), $word_count, $ai_provider, [], $keyword);
+        
+        // Opcionalmente eliminar la idea usada
+        if (get_option('auto_delete_used_ideas', 'no') === 'yes') {
+            wp_delete_post($idea->ID, true);
+        }
+    } else {
+        // Fallback a la lista de temas
+        $topics_list = get_option('auto_topics_list', '');
+        $topics = array_filter(explode("\n", $topics_list));
+        
+        if (empty($topics)) {
+            return;
+        }
+        
+        // Obtener tema aleatorio
+        $random_topic = $topics[array_rand($topics)];
+        
+        // Generar post
+        $category_id = get_option('auto_post_category', 1);
+        $tags = explode(',', get_option('auto_post_tags', ''));
+        $post_status = get_option('auto_post_status', 'publish');
+        $word_count = get_option('auto_post_word_count', '500');
+        $ai_provider = get_option('ai_provider', 'openai');
+        
+        generate_and_publish_post($random_topic, $category_id, $tags, $post_status, current_time('mysql'), $word_count, $ai_provider, [], '');
+    }
+}
+add_action('auto_generate_post_hook', 'auto_generate_post');
+
+// Activar programación al activar el plugin
+function activate_auto_post_scheduling() {
+    schedule_automatic_posts();
+}
+register_activation_hook(__FILE__, 'activate_auto_post_scheduling');
+
+// Desactivar programación al desactivar el plugin
+function deactivate_auto_post_scheduling() {
+    wp_clear_scheduled_hook('auto_generate_post_hook');
+}
+register_deactivation_hook(__FILE__, 'deactivate_auto_post_scheduling');

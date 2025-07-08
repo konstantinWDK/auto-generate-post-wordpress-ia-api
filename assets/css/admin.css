@@ -1,0 +1,337 @@
+/**
+ * Admin CSS for Auto Post Generator
+ */
+
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+
+/* Tab content styles */
+.apg-tab-content {
+    display: none;
+    padding: 20px 0;
+}
+
+.apg-tab-content.active {
+    display: block;
+}
+
+.form-table th {
+    width: 200px;
+}
+
+.form-table td input[type="text"],
+.form-table td input[type="password"],
+.form-table td textarea {
+    width: 400px;
+}
+
+.form-table td select {
+    min-width: 200px;
+}
+
+.notice h3 {
+    margin-top: 0;
+}
+
+.recent-ideas-list {
+    margin-top: 20px;
+}
+
+.recent-ideas-list table {
+    margin-top: 10px;
+}
+
+.recent-ideas-list td {
+    vertical-align: middle;
+}
+
+.button.button-small {
+    font-size: 11px;
+    height: auto;
+    line-height: 1.5;
+    padding: 2px 6px;
+}
+
+/* Post Ideas CPT Styles */
+.post-type-post_idea .column-actions {
+    width: 120px;
+}
+
+.post-type-post_idea .column-keyword {
+    width: 150px;
+}
+
+.post-type-post_idea .column-content_type {
+    width: 120px;
+}
+
+.post-type-post_idea .column-generated_date {
+    width: 120px;
+}
+
+/* Ideas List Styles */
+.post-idea-item {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px 0;
+    position: relative;
+}
+
+.post-idea-item h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.post-idea-meta {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.post-idea-actions {
+    text-align: right;
+}
+
+.post-idea-actions .button {
+    margin-left: 5px;
+}
+
+.keyword-highlight {
+    background: #fff3cd;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+/* Statistics Box */
+.apg-stats-box {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.apg-stats-box h3 {
+    margin-top: 0;
+    color: #0073aa;
+}
+
+.apg-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.apg-stat-item {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.apg-stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0073aa;
+}
+
+.apg-stat-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Tab Content */
+.apg-tab-content {
+    display: none;
+}
+
+.apg-tab-content.active {
+    display: block;
+}
+
+/* Form Enhancements */
+.apg-form-section {
+    margin-bottom: 30px;
+}
+
+.apg-form-section h3 {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.apg-form-row {
+    margin-bottom: 15px;
+}
+
+.apg-form-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.apg-form-row .description {
+    margin-top: 5px;
+    font-style: italic;
+    color: #666;
+}
+
+/* Loading States */
+.apg-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.apg-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ddd;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-table td input[type="text"],
+    .form-table td input[type="password"],
+    .form-table td textarea {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .apg-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-tab-wrapper {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .nav-tab {
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+}
+
+/* Success/Error Messages */
+.apg-message {
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-radius: 5px;
+}
+
+.apg-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.apg-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.apg-message.warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* Button Enhancements */
+.apg-button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.apg-button-group .button {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Progress Bar */
+.apg-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.apg-progress-fill {
+    height: 100%;
+    background: #0073aa;
+    transition: width 0.3s ease;
+}
+
+/* Tooltips */
+.apg-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.apg-tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.apg-tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Card Layout */
+.apg-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.apg-card h3 {
+    margin-top: 0;
+    color: #0073aa;
+}
+
+.apg-card-footer {
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    margin-top: 15px;
+    text-align: right;
+}

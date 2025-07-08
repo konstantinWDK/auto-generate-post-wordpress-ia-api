@@ -1,0 +1,533 @@
+# Auto Post Generator - Language Template
+# Copyright (C) 2024 konstantinWDK
+# This file is distributed under the same license as the Auto Post Generator plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Auto Post Generator 3.1\n"
+"Report-Msgid-Bugs-To: https://webdesignerk.com/support\n"
+"POT-Creation-Date: 2024-01-01 00:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: WordPress\n"
+"X-Domain: auto-post-generator\n"
+
+msgid "Auto Post Generator"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "General Settings"
+msgstr ""
+
+msgid "AI Settings"
+msgstr ""
+
+msgid "Content Settings"
+msgstr ""
+
+msgid "Scheduling"
+msgstr ""
+
+msgid "Post Ideas"
+msgstr ""
+
+msgid "Create Post"
+msgstr ""
+
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+msgid "Settings saved"
+msgstr ""
+
+msgid "AI Provider"
+msgstr ""
+
+msgid "Select the AI provider you want to use"
+msgstr ""
+
+msgid "OpenAI API Key"
+msgstr ""
+
+msgid "Get your API key from"
+msgstr ""
+
+msgid "DeepSeek API Key"
+msgstr ""
+
+msgid "Default Category"
+msgstr ""
+
+msgid "Tags (comma separated)"
+msgstr ""
+
+msgid "Post Status"
+msgstr ""
+
+msgid "Publish"
+msgstr ""
+
+msgid "Draft"
+msgstr ""
+
+msgid "Scheduled"
+msgstr ""
+
+msgid "OpenAI Model"
+msgstr ""
+
+msgid "DeepSeek Model"
+msgstr ""
+
+msgid "Temperature (0.0 - 2.0)"
+msgstr ""
+
+msgid "Controls creativity. Higher values = more creativity"
+msgstr ""
+
+msgid "Max Tokens"
+msgstr ""
+
+msgid "Maximum number of tokens in response"
+msgstr ""
+
+msgid "Post Ideas"
+msgstr ""
+
+msgid "Post Idea"
+msgstr ""
+
+msgid "Ideas Archive"
+msgstr ""
+
+msgid "Idea Attributes"
+msgstr ""
+
+msgid "Parent Idea:"
+msgstr ""
+
+msgid "All Ideas"
+msgstr ""
+
+msgid "Add New Idea"
+msgstr ""
+
+msgid "Add New"
+msgstr ""
+
+msgid "New Idea"
+msgstr ""
+
+msgid "Edit Idea"
+msgstr ""
+
+msgid "Update Idea"
+msgstr ""
+
+msgid "View Idea"
+msgstr ""
+
+msgid "View Ideas"
+msgstr ""
+
+msgid "Search Ideas"
+msgstr ""
+
+msgid "No ideas found"
+msgstr ""
+
+msgid "No ideas found in trash"
+msgstr ""
+
+msgid "Featured Image"
+msgstr ""
+
+msgid "Set featured image"
+msgstr ""
+
+msgid "Remove featured image"
+msgstr ""
+
+msgid "Use as featured image"
+msgstr ""
+
+msgid "Insert into idea"
+msgstr ""
+
+msgid "Uploaded to this idea"
+msgstr ""
+
+msgid "Ideas list"
+msgstr ""
+
+msgid "Ideas list navigation"
+msgstr ""
+
+msgid "Filter ideas list"
+msgstr ""
+
+msgid "Generated ideas for posts"
+msgstr ""
+
+msgid "Idea Details"
+msgstr ""
+
+msgid "Actions"
+msgstr ""
+
+msgid "Original Topic:"
+msgstr ""
+
+msgid "Keyword:"
+msgstr ""
+
+msgid "e.g. digital marketing, SEO, WordPress"
+msgstr ""
+
+msgid "Main keyword to focus content on"
+msgstr ""
+
+msgid "Content Type:"
+msgstr ""
+
+msgid "Generated Date:"
+msgstr ""
+
+msgid "Source Article:"
+msgstr ""
+
+msgid "Generate Post with this Idea"
+msgstr ""
+
+msgid "Create a complete post based on this idea"
+msgstr ""
+
+msgid "Idea Title"
+msgstr ""
+
+msgid "Original Topic"
+msgstr ""
+
+msgid "Keyword"
+msgstr ""
+
+msgid "Generated Date"
+msgstr ""
+
+msgid "Not defined"
+msgstr ""
+
+msgid "Generate Post"
+msgstr ""
+
+msgid "All ideas"
+msgstr ""
+
+msgid "With keyword"
+msgstr ""
+
+msgid "Without keyword"
+msgstr ""
+
+msgid "Idea updated."
+msgstr ""
+
+msgid "Custom field updated."
+msgstr ""
+
+msgid "Custom field deleted."
+msgstr ""
+
+msgid "Idea restored from revision"
+msgstr ""
+
+msgid "Idea saved."
+msgstr ""
+
+msgid "Idea submitted."
+msgstr ""
+
+msgid "Idea scheduled."
+msgstr ""
+
+msgid "Idea draft updated."
+msgstr ""
+
+msgid "Weekly"
+msgstr ""
+
+msgid "Biweekly"
+msgstr ""
+
+msgid "Monthly"
+msgstr ""
+
+msgid "No API key provided for"
+msgstr ""
+
+msgid "You are an SEO expert who generates blog content with HTML formatting."
+msgstr ""
+
+msgid "Error in OpenAI request: %s"
+msgstr ""
+
+msgid "No content generated. API response:"
+msgstr ""
+
+msgid "Generate an attractive and concise SEO title (maximum %d characters) for an article about: %s."
+msgstr ""
+
+msgid "IMPORTANT: Include the keyword \"%s\" in the title naturally."
+msgstr ""
+
+msgid "Do not use quotes in the title."
+msgstr ""
+
+msgid "You are an SEO expert who generates attractive titles without quotes."
+msgstr ""
+
+msgid "Error generating title"
+msgstr ""
+
+msgid "No title generated"
+msgstr ""
+
+msgid "Generated Post"
+msgstr ""
+
+msgid "Act as an SEO and content writing expert with %s style and %s tone. Target audience: %s."
+msgstr ""
+
+msgid "IMPORTANT: Focus on the main keyword \"%s\" and use it strategically throughout the content for SEO."
+msgstr ""
+
+msgid "Based on the following reference article, create a unique %d-word article about: %s. Reference article: %s. IMPORTANT: Do not copy the content, but create a fresh and original approach while maintaining the main ideas."
+msgstr ""
+
+msgid "Create a blog article of approximately %d words about the following topic: %s."
+msgstr ""
+
+msgid "REQUIRED FORMAT: Use ONLY the following basic HTML tags:"
+msgstr ""
+
+msgid "for main headings"
+msgstr ""
+
+msgid "for subheadings"
+msgstr ""
+
+msgid "for bold text"
+msgstr ""
+
+msgid "for italic text"
+msgstr ""
+
+msgid "for paragraphs"
+msgstr ""
+
+msgid "for bullet lists"
+msgstr ""
+
+msgid "for numbered lists"
+msgstr ""
+
+msgid "for line breaks if necessary"
+msgstr ""
+
+msgid "DO NOT use: div, span, class, id, style, table, img, script, or any complex HTML tags."
+msgstr ""
+
+msgid "Structure the content as follows:"
+msgstr ""
+
+msgid "Introduce the topic with an attractive paragraph."
+msgstr ""
+
+msgid "Use <h2> headings for main sections."
+msgstr ""
+
+msgid "Use <h3> headings for subsections when necessary."
+msgstr ""
+
+msgid "Include at least one bullet list (<ul><li>) or numbered list (<ol><li>)."
+msgstr ""
+
+msgid "Use <strong> for bold and <em> for italic when appropriate."
+msgstr ""
+
+msgid "Conclude with a summary paragraph."
+msgstr ""
+
+msgid "Add an FAQ section with 3 questions and answers related to the topic at the end of the article."
+msgstr ""
+
+msgid "Additional instructions:"
+msgstr ""
+
+msgid "Make sure the content is informative, engaging and SEO optimized. Use ONLY the basic HTML tags mentioned. DO NOT include a title for the article."
+msgstr ""
+
+msgid "Error creating post: %s"
+msgstr ""
+
+msgid "Post created with ID: %d, scheduled for: %s"
+msgstr ""
+
+msgid "general post ideas"
+msgstr ""
+
+msgid "step-by-step tutorials"
+msgstr ""
+
+msgid "lists and compilations"
+msgstr ""
+
+msgid "comparisons and reviews"
+msgstr ""
+
+msgid "news and updates"
+msgstr ""
+
+msgid "Generate %d %s about the topic \"%s\"."
+msgstr ""
+
+msgid "Each idea should be:"
+msgstr ""
+
+msgid "Specific and attractive"
+msgstr ""
+
+msgid "SEO optimized"
+msgstr ""
+
+msgid "Useful for the audience"
+msgstr ""
+
+msgid "Feasible to write"
+msgstr ""
+
+msgid "Present each idea as an attractive title on a separate line, without numbering."
+msgstr ""
+
+msgid "related and complementary topic ideas"
+msgstr ""
+
+msgid "ideas that expand and deepen the mentioned concepts"
+msgstr ""
+
+msgid "ideas with alternative approaches and different perspectives"
+msgstr ""
+
+msgid "practical application and use case ideas"
+msgstr ""
+
+msgid "Analyze the following article and generate %d %s for new blog posts based on its content."
+msgstr ""
+
+msgid "Reference article:"
+msgstr ""
+
+msgid "Unique and different from the original article"
+msgstr ""
+
+msgid "Feasible to write as an independent post"
+msgstr ""
+
+msgid "You are a content marketing expert who generates creative ideas for blog posts."
+msgstr ""
+
+msgid "No content generated"
+msgstr ""
+
+msgid "%d post ideas have been generated and saved."
+msgstr ""
+
+msgid "View Saved Ideas"
+msgstr ""
+
+msgid "Based on reference article"
+msgstr ""
+
+msgid "%d ideas have been generated and saved based on the reference article."
+msgstr ""
+
+msgid "Are you sure you want to delete this idea?"
+msgstr ""
+
+msgid "Generating..."
+msgstr ""
+
+msgid "An error occurred. Please try again."
+msgstr ""
+
+msgid "Auto Post Generator Pro: Please configure your %s API key in the <a href=\"%s\">settings</a> to start generating content."
+msgstr ""
+
+msgid "Security check failed"
+msgstr ""
+
+msgid "Insufficient permissions"
+msgstr ""
+
+msgid "Please enter a main topic."
+msgstr ""
+
+msgid "Error generating ideas. Please check your API configuration."
+msgstr ""
+
+msgid "No ideas found."
+msgstr ""
+
+msgid "API key is required"
+msgstr ""
+
+msgid "API key is valid"
+msgstr ""
+
+msgid "API key is invalid"
+msgstr ""
+
+msgid "Setting saved"
+msgstr ""
+
+msgid "Error saving setting"
+msgstr ""
+
+msgid "Invalid idea ID"
+msgstr ""
+
+msgid "Idea deleted successfully"
+msgstr ""
+
+msgid "Error deleting idea"
+msgstr ""
+
+msgid "Please enter a reference article."
+msgstr ""
+
+msgid "Error generating ideas from article. Please check your API configuration."
+msgstr ""
+
+msgid "Write a post about a relevant topic."
+msgstr ""
+
+msgid "Post generated from idea. "
+msgstr ""
+
+msgid "Do you want to delete this idea since it has been used to generate the post?"
+msgstr ""
+
+msgid "Delete Used Idea"
+msgstr ""
+
+msgid "Idea deleted successfully."
+msgstr ""
+
+msgid "Error deleting idea."
+msgstr ""
