@@ -34,6 +34,7 @@ class Auto_Post_Generator_Admin_Ajax {
         add_action('wp_ajax_validate_api_key', array($this, 'validate_api_key'));
         add_action('wp_ajax_save_setting', array($this, 'save_setting'));
         add_action('wp_ajax_delete_idea', array($this, 'delete_idea'));
+        add_action('wp_ajax_bulk_ideas_action', array($this, 'bulk_ideas_action'));
     }
     
     /**
@@ -236,16 +237,156 @@ class Auto_Post_Generator_Admin_Ajax {
             ));
         }
         
+        // Get idea title for confirmation
+        $idea_post = get_post($idea_id);
+        if (!$idea_post || $idea_post->post_type !== 'post_idea') {
+            wp_send_json_error(array(
+                'message' => __('Idea not found', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+            ));
+        }
+        
         // Delete idea
         $result = wp_delete_post($idea_id, true);
         
         if ($result) {
             wp_send_json_success(array(
-                'message' => __('Idea deleted successfully', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => sprintf(__('Idea "%s" deleted successfully', AUTO_POST_GENERATOR_TEXT_DOMAIN), $idea_post->post_title)
             ));
         } else {
             wp_send_json_error(array(
                 'message' => __('Error deleting idea', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+            ));
+        }
+    }
+    
+    /**
+     * Handle bulk ideas actions via AJAX
+     */
+    public function bulk_ideas_action() {
+        // Check nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
+            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        }
+        
+        $bulk_action = sanitize_text_field($_POST['bulk_action']);
+        $idea_ids = array_map('absint', $_POST['idea_ids']);
+        
+        if (empty($idea_ids)) {
+            wp_send_json_error(array(
+                'message' => __('No ideas selected', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+            ));
+        }
+        
+        $success_count = 0;
+        $failed_count = 0;
+        
+        switch ($bulk_action) {
+            case 'bulk_delete_selected':
+                foreach ($idea_ids as $idea_id) {
+                    $result = wp_delete_post($idea_id, true);
+                    if ($result) {
+                        $success_count++;
+                    } else {
+                        $failed_count++;
+                    }
+                }
+                
+                $message = sprintf(
+                    _n('%d idea deleted successfully.', '%d ideas deleted successfully.', $success_count, AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    $success_count
+                );
+                break;
+                
+            case 'bulk_generate_posts':
+                foreach ($idea_ids as $idea_id) {
+                    $idea_post = get_post($idea_id);
+                    if (!$idea_post || $idea_post->post_type !== 'post_idea') {
+                        $failed_count++;
+                        continue;
+                    }
+                    
+                    // Get idea details
+                    $idea_keyword = get_post_meta($idea_id, '_post_idea_keyword', true);
+                    $prompt = $idea_post->post_title;
+                    
+                    // Use default settings
+                    $category_id = Auto_Post_Generator_Settings::get_setting('auto_post_category', 1);
+                    $tags = explode(',', Auto_Post_Generator_Settings::get_setting('auto_post_tags', ''));
+                    $post_status = Auto_Post_Generator_Settings::get_setting('auto_post_status', 'draft');
+                    $word_count = Auto_Post_Generator_Settings::get_setting('auto_post_word_count', '500');
+                    $ai_provider = Auto_Post_Generator_Settings::get_setting('ai_provider', 'openai');
+                    
+                    // Generate post
+                    $result = Auto_Post_Generator_Post_Generator::generate_and_publish_post(
+                        $prompt,
+                        $category_id,
+                        $tags,
+                        $post_status,
+                        current_time('mysql'),
+                        $word_count,
+                        $ai_provider,
+                        array(),
+                        $idea_keyword,
+                        ''
+                    );
+                    
+                    if ($result && !is_wp_error($result)) {
+                        $success_count++;
+                    } else {
+                        $failed_count++;
+                    }
+                }
+                
+                $message = sprintf(
+                    _n('%d post generated successfully.', '%d posts generated successfully.', $success_count, AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    $success_count
+                );
+                break;
+                
+            case 'bulk_add_keyword':
+                $keyword = sanitize_text_field($_POST['keyword']);
+                if (empty($keyword)) {
+                    wp_send_json_error(array(
+                        'message' => __('Keyword is required', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                    ));
+                }
+                
+                foreach ($idea_ids as $idea_id) {
+                    $result = update_post_meta($idea_id, '_post_idea_keyword', $keyword);
+                    if ($result !== false) {
+                        $success_count++;
+                    } else {
+                        $failed_count++;
+                    }
+                }
+                
+                $message = sprintf(
+                    _n('%d idea updated with keyword "%s".', '%d ideas updated with keyword "%s".', $success_count, AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    $success_count,
+                    $keyword
+                );
+                break;
+                
+            default:
+                wp_send_json_error(array(
+                    'message' => __('Invalid bulk action', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                ));
+        }
+        
+        if ($success_count > 0) {
+            wp_send_json_success(array(
+                'message' => $message,
+                'success_count' => $success_count,
+                'failed_count' => $failed_count
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => __('No actions completed successfully', AUTO_POST_GENERATOR_TEXT_DOMAIN)
             ));
         }
     }

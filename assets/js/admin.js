@@ -90,13 +90,77 @@ jQuery(document).ready(function($) {
         });
     });
     
-    // Delete idea confirmation
-    $(document).on('click', '.delete-idea', function(e) {
-        var confirmDelete = confirm(autoPostGenerator.strings.confirm_delete);
-        if (!confirmDelete) {
-            e.preventDefault();
+    // Delete idea with AJAX
+    $(document).on('click', '.idea-delete-btn', function(e) {
+        e.preventDefault();
+        
+        var $btn = $(this);
+        var ideaId = $btn.data('idea-id');
+        var ideaTitle = $btn.data('idea-title');
+        var $row = $btn.closest('tr');
+        
+        // Show confirmation dialog
+        var confirmMessage = autoPostGenerator.strings.confirm_delete_idea || 
+                            'Are you sure you want to delete the idea "' + ideaTitle + '"?';
+        
+        if (!confirm(confirmMessage)) {
             return false;
         }
+        
+        // Show loading state
+        $btn.prop('disabled', true);
+        $btn.html('<span class="spinner is-active" style="float: none; margin: 0;"></span>');
+        
+        // Make AJAX request
+        $.ajax({
+            url: autoPostGenerator.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'delete_idea',
+                nonce: autoPostGenerator.nonce,
+                idea_id: ideaId
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Remove row with animation
+                    $row.fadeOut(300, function() {
+                        $row.remove();
+                        
+                        // Update ideas count if visible
+                        var $ideasCount = $('.ideas-count');
+                        if ($ideasCount.length) {
+                            var currentCount = parseInt($ideasCount.text()) || 0;
+                            $ideasCount.text(Math.max(0, currentCount - 1));
+                        }
+                        
+                        // Check if no ideas left
+                        var $table = $('.ideas-list table tbody');
+                        if ($table.find('tr').length === 0) {
+                            $('.ideas-list').html('<div class="notice notice-info"><p>' + 
+                                (autoPostGenerator.strings.no_ideas || 'No ideas found. Generate some ideas using the form above.') + 
+                                '</p></div>');
+                        }
+                    });
+                    
+                    // Show success message
+                    showMessage(response.data.message, 'success');
+                } else {
+                    // Show error message
+                    showMessage(response.data.message || autoPostGenerator.strings.error, 'error');
+                    
+                    // Reset button state
+                    $btn.prop('disabled', false);
+                    $btn.html('🗑️ ' + (autoPostGenerator.strings.delete || 'Delete'));
+                }
+            },
+            error: function() {
+                showMessage(autoPostGenerator.strings.error || 'An error occurred', 'error');
+                
+                // Reset button state
+                $btn.prop('disabled', false);
+                $btn.html('🗑️ ' + (autoPostGenerator.strings.delete || 'Delete'));
+            }
+        });
     });
     
     // Auto-save form fields
@@ -316,6 +380,176 @@ jQuery(document).ready(function($) {
             $('#generate-ideas-btn').click();
         }
     });
+    
+    // Bulk actions confirmation
+    $('#doaction, #doaction2').on('click', function(e) {
+        var $form = $(this).closest('form');
+        var action = $form.find('select[name="action"]').val() || $form.find('select[name="action2"]').val();
+        var $checkedBoxes = $form.find('input[name="post[]"]:checked');
+        
+        if (action === 'bulk_delete_ideas' && $checkedBoxes.length > 0) {
+            var count = $checkedBoxes.length;
+            var confirmMessage = count === 1 ? 
+                'Are you sure you want to delete this idea?' : 
+                'Are you sure you want to delete these ' + count + ' ideas?';
+            
+            if (!confirm(confirmMessage)) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        if (action === 'generate_posts' && $checkedBoxes.length > 0) {
+            var count = $checkedBoxes.length;
+            var confirmMessage = count === 1 ? 
+                'Generate 1 post from this idea?' : 
+                'Generate ' + count + ' posts from these ideas?';
+            
+            if (!confirm(confirmMessage)) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+    
+    // Delete all ideas confirmation
+    $(document).on('click', '.delete-all-ideas', function(e) {
+        var $link = $(this);
+        var ideaCount = $link.text().match(/\((\d+)\)/);
+        var count = ideaCount ? ideaCount[1] : 'all';
+        
+        var confirmMessage = 'Are you ABSOLUTELY sure you want to delete ALL ' + count + ' ideas?\n\n' +
+                            'This action cannot be undone!\n\n' +
+                            'Type "DELETE ALL" to confirm:';
+        
+        var userInput = prompt(confirmMessage);
+        if (userInput !== 'DELETE ALL') {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    // Select all checkbox functionality
+    $('#cb-select-all-1').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('input[name="idea_ids[]"]').prop('checked', isChecked);
+    });
+    
+    // Individual checkbox change
+    $(document).on('change', 'input[name="idea_ids[]"]', function() {
+        var totalCheckboxes = $('input[name="idea_ids[]"]').length;
+        var checkedCheckboxes = $('input[name="idea_ids[]"]:checked').length;
+        $('#cb-select-all-1').prop('checked', totalCheckboxes === checkedCheckboxes);
+    });
+    
+    // Bulk actions form submission
+    $('#doaction').on('click', function(e) {
+        e.preventDefault();
+        
+        var action = $('#bulk-action-selector-top').val();
+        var $checkedBoxes = $('input[name="idea_ids[]"]:checked');
+        
+        if (action === '-1') {
+            alert('Please select an action.');
+            return false;
+        }
+        
+        if ($checkedBoxes.length === 0) {
+            alert('Please select at least one idea.');
+            return false;
+        }
+        
+        var count = $checkedBoxes.length;
+        var confirmMessage = '';
+        
+        switch(action) {
+            case 'bulk_delete_selected':
+                confirmMessage = count === 1 ? 
+                    'Are you sure you want to delete this idea?' : 
+                    'Are you sure you want to delete these ' + count + ' ideas?';
+                break;
+            case 'bulk_generate_posts':
+                confirmMessage = count === 1 ? 
+                    'Generate 1 post from this idea?' : 
+                    'Generate ' + count + ' posts from these ideas?';
+                break;
+            case 'bulk_add_keyword':
+                var keyword = prompt('Enter keyword to add to selected ideas:');
+                if (!keyword) return false;
+                performBulkAction(action, $checkedBoxes, keyword);
+                return;
+        }
+        
+        if (confirmMessage && confirm(confirmMessage)) {
+            performBulkAction(action, $checkedBoxes);
+        }
+    });
+    
+    // Perform bulk action
+    function performBulkAction(action, $checkedBoxes, keyword) {
+        var ideaIds = [];
+        $checkedBoxes.each(function() {
+            ideaIds.push($(this).val());
+        });
+        
+        var data = {
+            action: 'bulk_ideas_action',
+            nonce: autoPostGenerator.nonce,
+            bulk_action: action,
+            idea_ids: ideaIds
+        };
+        
+        if (keyword) {
+            data.keyword = keyword;
+        }
+        
+        // Show loading state
+        $('#doaction').prop('disabled', true).val('Processing...');
+        
+        $.ajax({
+            url: autoPostGenerator.ajaxurl,
+            type: 'POST',
+            data: data,
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.data.message, 'success');
+                    
+                    // If delete action, remove rows
+                    if (action === 'bulk_delete_selected') {
+                        $checkedBoxes.each(function() {
+                            $(this).closest('tr').fadeOut(300, function() {
+                                $(this).remove();
+                                updateIdeasCount();
+                            });
+                        });
+                    }
+                    
+                    // Reset form
+                    $('#cb-select-all-1').prop('checked', false);
+                    $('#bulk-action-selector-top').val('-1');
+                } else {
+                    showMessage(response.data.message || 'An error occurred', 'error');
+                }
+            },
+            error: function() {
+                showMessage('An error occurred while processing the request', 'error');
+            },
+            complete: function() {
+                $('#doaction').prop('disabled', false).val('Apply');
+            }
+        });
+    }
+    
+    // Update ideas count
+    function updateIdeasCount() {
+        var remainingRows = $('#ideas-bulk-form tbody tr').length;
+        $('.ideas-count').text(remainingRows);
+        $('.displaying-num').text(remainingRows + (remainingRows === 1 ? ' item' : ' items'));
+        
+        if (remainingRows === 0) {
+            $('.ideas-list').html('<div class="notice notice-info"><p>No ideas found. Generate some ideas using the form above.</p></div>');
+        }
+    }
     
     // Initialize components
     initializeComponents();

@@ -103,46 +103,79 @@ $ideas = get_posts(array(
     
     <hr />
     
-    <h2><?php _e('Saved Ideas', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?> (<?php echo count($ideas); ?>)</h2>
+    <h2><?php _e('Saved Ideas', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?> (<span class="ideas-count"><?php echo count($ideas); ?></span>)</h2>
     
     <?php if (!empty($ideas)): ?>
         <div class="ideas-list">
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th><?php _e('Idea Title', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Original Topic', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Keyword', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Generated Date', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Actions', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($ideas as $idea): ?>
+            <!-- Bulk Actions -->
+            <div class="tablenav top">
+                <div class="alignleft actions bulkactions">
+                    <label for="bulk-action-selector-top" class="screen-reader-text"><?php _e('Select bulk action', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></label>
+                    <select name="action" id="bulk-action-selector-top">
+                        <option value="-1"><?php _e('Bulk Actions', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
+                        <option value="bulk_delete_selected"><?php _e('Delete Selected', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
+                        <option value="bulk_generate_posts"><?php _e('Generate Posts', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
+                        <option value="bulk_add_keyword"><?php _e('Add Keyword', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
+                    </select>
+                    <input type="submit" id="doaction" class="button action" value="<?php _e('Apply', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>">
+                </div>
+                <div class="alignright">
+                    <span class="displaying-num"><?php printf(_n('%s item', '%s items', count($ideas), AUTO_POST_GENERATOR_TEXT_DOMAIN), count($ideas)); ?></span>
+                </div>
+            </div>
+            
+            <form id="ideas-bulk-form" method="post">
+                <?php wp_nonce_field('bulk_ideas_action', 'bulk_ideas_nonce'); ?>
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
                         <tr>
-                            <td><strong><?php echo esc_html($idea->post_title); ?></strong></td>
+                            <td id="cb" class="manage-column column-cb check-column">
+                                <label class="screen-reader-text" for="cb-select-all-1"><?php _e('Select All', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></label>
+                                <input id="cb-select-all-1" type="checkbox" />
+                            </td>
+                            <th><?php _e('Idea Title', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                            <th><?php _e('Original Topic', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                            <th><?php _e('Keyword', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                            <th><?php _e('Generated Date', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                            <th><?php _e('Actions', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ideas as $idea): ?>
+                            <tr>
+                                <th scope="row" class="check-column">
+                                    <label class="screen-reader-text" for="cb-select-<?php echo $idea->ID; ?>"><?php printf(__('Select %s', AUTO_POST_GENERATOR_TEXT_DOMAIN), $idea->post_title); ?></label>
+                                    <input id="cb-select-<?php echo $idea->ID; ?>" type="checkbox" name="idea_ids[]" value="<?php echo $idea->ID; ?>" />
+                                </th>
+                                <td><strong><?php echo esc_html($idea->post_title); ?></strong></td>
                             <td><?php echo esc_html(get_post_meta($idea->ID, '_post_idea_topic', true) ?: __('Not defined', AUTO_POST_GENERATOR_TEXT_DOMAIN)); ?></td>
                             <td><?php echo esc_html(get_post_meta($idea->ID, '_post_idea_keyword', true) ?: __('Not defined', AUTO_POST_GENERATOR_TEXT_DOMAIN)); ?></td>
                             <td><?php echo esc_html(get_the_date('', $idea->ID)); ?></td>
                             <td>
-                                <a href="<?php echo admin_url('post.php?post=' . $idea->ID . '&action=edit'); ?>" 
-                                   class="button button-small">
-                                    <?php _e('Edit', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
-                                </a>
-                                <a href="<?php echo admin_url('admin.php?page=auto-post-generator&tab=create&idea_id=' . $idea->ID); ?>" 
-                                   class="button button-small button-primary">
-                                    <?php _e('Generate Post', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
-                                </a>
-                                <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=auto-post-generator&tab=ideas&action=delete&idea_id=' . $idea->ID), 'delete_idea_' . $idea->ID); ?>" 
-                                   class="button button-small delete-idea"
-                                   onclick="return confirm('<?php _e('Are you sure you want to delete this idea?', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>');">
-                                    <?php _e('Delete', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
-                                </a>
+                                <div class="idea-actions">
+                                    <a href="<?php echo admin_url('post.php?post=' . $idea->ID . '&action=edit'); ?>" 
+                                       class="button button-small idea-edit-btn" 
+                                       title="<?php _e('Edit this idea', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>">
+                                        📝 <?php _e('Edit', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                                    </a>
+                                    <a href="<?php echo admin_url('admin.php?page=auto-post-generator&tab=create&idea_id=' . $idea->ID); ?>" 
+                                       class="button button-small button-primary idea-generate-btn"
+                                       title="<?php _e('Generate a post from this idea', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>">
+                                        🚀 <?php _e('Generate Post', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                                    </a>
+                                    <button class="button button-small button-secondary idea-delete-btn" 
+                                            data-idea-id="<?php echo $idea->ID; ?>" 
+                                            data-idea-title="<?php echo esc_attr($idea->post_title); ?>"
+                                            title="<?php _e('Delete this idea', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>">
+                                        🗑️ <?php _e('Delete', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </form>
         </div>
     <?php else: ?>
         <div class="notice notice-info">

@@ -128,7 +128,7 @@ class Auto_Post_Generator_Admin_Pages {
         }
         
         // Handle idea deletion
-        if (isset($_GET['delete_idea']) && wp_verify_nonce($_GET['_wpnonce'], 'delete_idea_' . $_GET['delete_idea'])) {
+        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['idea_id']) && wp_verify_nonce($_GET['_wpnonce'], 'delete_idea_' . $_GET['idea_id'])) {
             $this->handle_delete_idea();
         }
     }
@@ -239,11 +239,11 @@ class Auto_Post_Generator_Admin_Pages {
      * Handle idea deletion
      */
     private function handle_delete_idea() {
-        $delete_id = absint($_GET['delete_idea']);
+        $delete_id = absint($_GET['idea_id']);
         
         if (wp_delete_post($delete_id, true)) {
             echo '<div class="notice notice-success"><p>' . __('Idea deleted successfully.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
-            echo '<script>window.history.replaceState({}, document.title, "' . admin_url('admin.php?page=auto-post-generator&tab=create') . '");</script>';
+            echo '<script>window.history.replaceState({}, document.title, "' . admin_url('admin.php?page=auto-post-generator&tab=ideas') . '");</script>';
         } else {
             echo '<div class="notice notice-error"><p>' . __('Error deleting idea.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
         }
