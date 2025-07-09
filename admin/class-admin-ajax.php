@@ -54,7 +54,7 @@ class Auto_Post_Generator_Admin_Ajax {
         parse_str($_POST['form_data'], $form_data);
         
         $main_topic = sanitize_text_field($form_data['main_topic']);
-        $ideas_count = absint($form_data['ideas_count']);
+        $ideas_count = absint($form_data['num_ideas']);
         $content_type = sanitize_text_field($form_data['content_type']);
         
         if (empty($main_topic)) {

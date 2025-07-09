@@ -138,7 +138,7 @@ class Auto_Post_Generator_Admin_Pages {
      */
     private function handle_generate_ideas() {
         $main_topic = sanitize_text_field($_POST['main_topic']);
-        $ideas_count = absint($_POST['ideas_count']);
+        $ideas_count = absint($_POST['num_ideas']);
         $content_type = sanitize_text_field($_POST['content_type']);
         
         if ($main_topic) {
@@ -158,8 +158,8 @@ class Auto_Post_Generator_Admin_Pages {
      */
     private function handle_generate_ideas_from_article() {
         $reference_article = sanitize_textarea_field($_POST['reference_article']);
-        $ideas_count = absint($_POST['ideas_count_article']);
-        $approach = sanitize_text_field($_POST['article_approach']);
+        $ideas_count = absint($_POST['num_ideas_article']);
+        $approach = sanitize_text_field($_POST['generation_type']);
         
         if ($reference_article) {
             $result = Auto_Post_Generator_Ideas_Generator::generate_ideas_from_article($reference_article, $ideas_count, $approach);
