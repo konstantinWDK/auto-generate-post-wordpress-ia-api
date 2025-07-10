@@ -108,12 +108,13 @@ class Auto_Post_Generator_Post_Generator {
         $ai_parameters = Auto_Post_Generator_Settings::get_ai_parameters();
         
         // Prepare API request data
+        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
         $data = array(
             'model' => $ai_settings['model'],
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are an SEO expert who generates blog content with HTML formatting.', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                    'content' => __('You are an SEO expert who generates blog content with HTML formatting.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',
@@ -159,6 +160,7 @@ class Auto_Post_Generator_Post_Generator {
      */
     private static function generate_title($prompt, $keyword, $ai_settings) {
         $title_length = Auto_Post_Generator_Settings::get_setting('title_max_length', 60);
+        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
         
         $title_prompt = sprintf(
             __('Generate an attractive and concise SEO title (maximum %d characters) for an article about: %s.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
@@ -174,6 +176,7 @@ class Auto_Post_Generator_Post_Generator {
         }
         
         $title_prompt .= ' ' . __('Do not use quotes in the title.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        $title_prompt .= ' ' . $language_instructions;
         
         $ai_parameters = Auto_Post_Generator_Settings::get_ai_parameters();
         
@@ -182,7 +185,7 @@ class Auto_Post_Generator_Post_Generator {
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are an SEO expert who generates attractive titles without quotes.', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                    'content' => __('You are an SEO expert who generates attractive titles without quotes.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',
@@ -225,12 +228,17 @@ class Auto_Post_Generator_Post_Generator {
      * Build content prompt
      */
     private static function build_content_prompt($prompt, $word_count, $keyword, $source_article, $content_settings) {
+        // Add language instructions
+        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
+        
         $seo_prompt = sprintf(
             __('Act as an SEO and content writing expert with %s style and %s tone. Target audience: %s.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
             $content_settings['writing_style'],
             $content_settings['tone'],
             $content_settings['target_audience']
         );
+        
+        $seo_prompt .= ' ' . $language_instructions;
         
         if (!empty($keyword)) {
             $seo_prompt .= ' ' . sprintf(

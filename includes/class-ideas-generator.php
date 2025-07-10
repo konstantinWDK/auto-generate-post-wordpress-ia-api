@@ -95,6 +95,7 @@ class Auto_Post_Generator_Ideas_Generator {
         );
         
         $instruction = isset($content_type_instructions[$content_type]) ? $content_type_instructions[$content_type] : $content_type_instructions['general'];
+        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
         
         $prompt = sprintf(
             __('Generate %d %s about the topic "%s".', AUTO_POST_GENERATOR_TEXT_DOMAIN),
@@ -103,6 +104,7 @@ class Auto_Post_Generator_Ideas_Generator {
             $topic
         );
         
+        $prompt .= ' ' . $language_instructions;
         $prompt .= ' ' . __('Each idea should be:', AUTO_POST_GENERATOR_TEXT_DOMAIN);
         $prompt .= ' 1. ' . __('Specific and attractive', AUTO_POST_GENERATOR_TEXT_DOMAIN);
         $prompt .= ' 2. ' . __('SEO optimized', AUTO_POST_GENERATOR_TEXT_DOMAIN);
@@ -125,6 +127,7 @@ class Auto_Post_Generator_Ideas_Generator {
         );
         
         $instruction = isset($approach_instructions[$approach]) ? $approach_instructions[$approach] : $approach_instructions['related'];
+        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
         
         $prompt = sprintf(
             __('Analyze the following article and generate %d %s for new blog posts based on its content.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
@@ -132,6 +135,7 @@ class Auto_Post_Generator_Ideas_Generator {
             $instruction
         );
         
+        $prompt .= ' ' . $language_instructions;
         $prompt .= "\n\n" . __('Reference article:', AUTO_POST_GENERATOR_TEXT_DOMAIN) . "\n{$article}\n\n";
         
         $prompt .= __('Each idea should be:', AUTO_POST_GENERATOR_TEXT_DOMAIN) . "\n";
@@ -148,12 +152,13 @@ class Auto_Post_Generator_Ideas_Generator {
      * Call AI API
      */
     private static function call_ai_api($prompt, $ai_settings) {
+        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
         $data = array(
             'model' => $ai_settings['model'],
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are a content marketing expert who generates creative ideas for blog posts.', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                    'content' => __('You are a content marketing expert who generates creative ideas for blog posts.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',

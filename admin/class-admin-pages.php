@@ -42,7 +42,7 @@ class Auto_Post_Generator_Admin_Pages {
         
         // Check if settings were updated
         if (isset($_GET['settings-updated'])) {
-            add_settings_error('auto_post_generator_messages', 'auto_post_generator_message', __('Settings saved', AUTO_POST_GENERATOR_TEXT_DOMAIN), 'updated');
+            add_settings_error('auto_post_generator_messages', 'auto_post_generator_message', apg_translate('Settings saved'), 'updated');
         }
         
         // Show error/update messages
@@ -61,22 +61,22 @@ class Auto_Post_Generator_Admin_Pages {
             <!-- Navigation tabs -->
             <nav class="nav-tab-wrapper">
                 <a href="?page=auto-post-generator&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('General Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                    <?php echo esc_html(apg_translate('General Settings')); ?>
                 </a>
                 <a href="?page=auto-post-generator&tab=ai" class="nav-tab <?php echo $active_tab == 'ai' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('AI Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                    <?php echo esc_html(apg_translate('AI Settings')); ?>
                 </a>
                 <a href="?page=auto-post-generator&tab=content" class="nav-tab <?php echo $active_tab == 'content' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('Content Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                    <?php echo esc_html(apg_translate('Content Settings')); ?>
                 </a>
                 <a href="?page=auto-post-generator&tab=scheduling" class="nav-tab <?php echo $active_tab == 'scheduling' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('Scheduling', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                    <?php echo esc_html(apg_translate('Scheduling')); ?>
                 </a>
                 <a href="?page=auto-post-generator&tab=ideas" class="nav-tab <?php echo $active_tab == 'ideas' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('Post Ideas', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                    <?php echo esc_html(apg_translate('Post Ideas')); ?>
                 </a>
                 <a href="?page=auto-post-generator&tab=create" class="nav-tab <?php echo $active_tab == 'create' ? 'nav-tab-active' : ''; ?>">
-                    <?php _e('Create Post', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                    <?php echo esc_html(apg_translate('Create Post')); ?>
                 </a>
             </nav>
             
@@ -146,10 +146,10 @@ class Auto_Post_Generator_Admin_Pages {
             if ($result) {
                 echo '<div class="notice notice-success"><p>' . $result . '</p></div>';
             } else {
-                echo '<div class="notice notice-error"><p>' . __('Error generating ideas. Please check your API configuration.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . esc_html(apg_translate('Error generating ideas. Please check your API configuration.')) . '</p></div>';
             }
         } else {
-            echo '<div class="notice notice-warning"><p>' . __('Please enter a main topic.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
+            echo '<div class="notice notice-warning"><p>' . esc_html(apg_translate('Please enter a main topic.')) . '</p></div>';
         }
     }
     
@@ -166,10 +166,10 @@ class Auto_Post_Generator_Admin_Pages {
             if ($result) {
                 echo '<div class="notice notice-success"><p>' . $result . '</p></div>';
             } else {
-                echo '<div class="notice notice-error"><p>' . __('Error generating ideas from article. Please check your API configuration.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . esc_html(apg_translate('Error generating ideas from article. Please check your API configuration.')) . '</p></div>';
             }
         } else {
-            echo '<div class="notice notice-warning"><p>' . __('Please enter a reference article.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
+            echo '<div class="notice notice-warning"><p>' . esc_html(apg_translate('Please enter a reference article.')) . '</p></div>';
         }
     }
     
@@ -227,9 +227,9 @@ class Auto_Post_Generator_Admin_Pages {
         // Show option to delete used idea
         if ($idea_id && $idea_post) {
             echo '<div class="notice notice-warning">';
-            echo '<p>' . __('Post generated from idea. ', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+            echo '<p>' . esc_html(apg_translate('Post generated from idea. '));
             $delete_url = wp_nonce_url(admin_url('admin.php?page=auto-post-generator&tab=create&delete_idea=' . $idea_id), 'delete_idea_' . $idea_id);
-            echo '<a href="' . $delete_url . '" onclick="return confirm(\'' . __('Do you want to delete this idea since it has been used to generate the post?', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '\')" class="button button-small">' . __('Delete Used Idea', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</a>';
+            echo '<a href="' . $delete_url . '" onclick="return confirm(\'' . esc_js(apg_translate('Do you want to delete this idea since it has been used to generate the post?')) . '\')" class="button button-small">' . esc_html(apg_translate('Delete Used Idea')) . '</a>';
             echo '</p>';
             echo '</div>';
         }
@@ -242,10 +242,10 @@ class Auto_Post_Generator_Admin_Pages {
         $delete_id = absint($_GET['idea_id']);
         
         if (wp_delete_post($delete_id, true)) {
-            echo '<div class="notice notice-success"><p>' . __('Idea deleted successfully.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
+            echo '<div class="notice notice-success"><p>' . esc_html(apg_translate('Idea deleted successfully.')) . '</p></div>';
             echo '<script>window.history.replaceState({}, document.title, "' . admin_url('admin.php?page=auto-post-generator&tab=ideas') . '");</script>';
         } else {
-            echo '<div class="notice notice-error"><p>' . __('Error deleting idea.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p></div>';
+            echo '<div class="notice notice-error"><p>' . esc_html(apg_translate('Error deleting idea.')) . '</p></div>';
         }
     }
     
@@ -259,34 +259,50 @@ class Auto_Post_Generator_Admin_Pages {
             settings_fields('my_plugin_settings_group');
             do_settings_sections('my_plugin_settings_group');
             ?>
-            <h2><?php _e('General Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></h2>
+            <h2><?php echo esc_html(apg_translate('General Settings')); ?></h2>
             <table class="form-table">
                 <tr valign="top">
-                    <th scope="row"><?php _e('AI Provider', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('Interface Language')); ?></th>
+                    <td>
+                        <select name="interface_language">
+                            <?php 
+                            $languages = Auto_Post_Generator_Settings::get_available_languages();
+                            $current_language = Auto_Post_Generator_Settings::get_interface_language();
+                            foreach ($languages as $code => $name): ?>
+                                <option value="<?php echo esc_attr($code); ?>" <?php selected($current_language, $code); ?>>
+                                    <?php echo esc_html($name); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php echo esc_html(apg_translate('Select the language for the interface and content generation')); ?></p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><?php echo esc_html(apg_translate('AI Provider')); ?></th>
                     <td>
                         <select name="ai_provider">
                             <option value="openai" <?php selected(Auto_Post_Generator_Settings::get_setting('ai_provider'), 'openai'); ?>>OpenAI</option>
                             <option value="deepseek" <?php selected(Auto_Post_Generator_Settings::get_setting('ai_provider'), 'deepseek'); ?>>DeepSeek</option>
                         </select>
-                        <p class="description"><?php _e('Select the AI provider you want to use', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></p>
+                        <p class="description"><?php echo esc_html(apg_translate('Select the AI provider you want to use')); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('OpenAI API Key', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('OpenAI API Key')); ?></th>
                     <td>
                         <input type="password" name="openai_api_key" value="<?php echo esc_attr(Auto_Post_Generator_Settings::get_setting('openai_api_key')); ?>" style="width: 400px;" />
-                        <p class="description"><?php _e('Get your API key from', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?> <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a></p>
+                        <p class="description"><?php echo esc_html(apg_translate('Get your API key from')); ?> <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a></p>
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('DeepSeek API Key', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('DeepSeek API Key')); ?></th>
                     <td>
                         <input type="password" name="deepseek_api_key" value="<?php echo esc_attr(Auto_Post_Generator_Settings::get_setting('deepseek_api_key')); ?>" style="width: 400px;" />
-                        <p class="description"><?php _e('Get your API key from', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?> <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a></p>
+                        <p class="description"><?php echo esc_html(apg_translate('Get your API key from')); ?> <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a></p>
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('Default Category', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('Default Category')); ?></th>
                     <td>
                         <?php
                         $categories = get_categories(array('hide_empty' => false));
@@ -302,16 +318,16 @@ class Auto_Post_Generator_Admin_Pages {
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('Tags (comma separated)', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('Tags (comma separated)')); ?></th>
                     <td><input type="text" name="auto_post_tags" value="<?php echo esc_attr(Auto_Post_Generator_Settings::get_setting('auto_post_tags', '')); ?>" style="width: 400px;" /></td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('Post Status', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('Post Status')); ?></th>
                     <td>
                         <select name="auto_post_status">
-                            <option value="publish" <?php selected(Auto_Post_Generator_Settings::get_setting('auto_post_status'), 'publish'); ?>><?php _e('Publish', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
-                            <option value="draft" <?php selected(Auto_Post_Generator_Settings::get_setting('auto_post_status'), 'draft'); ?>><?php _e('Draft', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
-                            <option value="future" <?php selected(Auto_Post_Generator_Settings::get_setting('auto_post_status'), 'future'); ?>><?php _e('Scheduled', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></option>
+                            <option value="publish" <?php selected(Auto_Post_Generator_Settings::get_setting('auto_post_status'), 'publish'); ?>><?php echo esc_html(apg_translate('Publish')); ?></option>
+                            <option value="draft" <?php selected(Auto_Post_Generator_Settings::get_setting('auto_post_status'), 'draft'); ?>><?php echo esc_html(apg_translate('Draft')); ?></option>
+                            <option value="future" <?php selected(Auto_Post_Generator_Settings::get_setting('auto_post_status'), 'future'); ?>><?php echo esc_html(apg_translate('Scheduled')); ?></option>
                         </select>
                     </td>
                 </tr>
@@ -331,10 +347,10 @@ class Auto_Post_Generator_Admin_Pages {
             settings_fields('my_plugin_ai_settings_group');
             do_settings_sections('my_plugin_ai_settings_group');
             ?>
-            <h2><?php _e('AI Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></h2>
+            <h2><?php echo esc_html(apg_translate('AI Settings')); ?></h2>
             <table class="form-table">
                 <tr valign="top">
-                    <th scope="row"><?php _e('OpenAI Model', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('OpenAI Model')); ?></th>
                     <td>
                         <select name="openai_model">
                             <option value="gpt-4" <?php selected(Auto_Post_Generator_Settings::get_setting('openai_model'), 'gpt-4'); ?>>GPT-4</option>
@@ -344,7 +360,7 @@ class Auto_Post_Generator_Admin_Pages {
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('DeepSeek Model', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('DeepSeek Model')); ?></th>
                     <td>
                         <select name="deepseek_model">
                             <option value="deepseek-chat" <?php selected(Auto_Post_Generator_Settings::get_setting('deepseek_model'), 'deepseek-chat'); ?>>DeepSeek Chat</option>
@@ -353,17 +369,17 @@ class Auto_Post_Generator_Admin_Pages {
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('Temperature (0.0 - 2.0)', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('Temperature (0.0 - 2.0)')); ?></th>
                     <td>
                         <input type="number" name="ai_temperature" value="<?php echo esc_attr(Auto_Post_Generator_Settings::get_setting('ai_temperature', '0.7')); ?>" min="0" max="2" step="0.1" />
-                        <p class="description"><?php _e('Controls creativity. Higher values = more creativity', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></p>
+                        <p class="description"><?php echo esc_html(apg_translate('Controls creativity. Higher values = more creativity')); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
-                    <th scope="row"><?php _e('Max Tokens', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                    <th scope="row"><?php echo esc_html(apg_translate('Max Tokens')); ?></th>
                     <td>
                         <input type="number" name="ai_max_tokens" value="<?php echo esc_attr(Auto_Post_Generator_Settings::get_setting('ai_max_tokens', '2000')); ?>" min="100" max="4000" />
-                        <p class="description"><?php _e('Maximum number of tokens in response', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></p>
+                        <p class="description"><?php echo esc_html(apg_translate('Maximum number of tokens in response')); ?></p>
                     </td>
                 </tr>
             </table>

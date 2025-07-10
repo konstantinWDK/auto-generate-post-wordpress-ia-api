@@ -38,9 +38,24 @@ jQuery(document).ready(function($) {
         var $submitBtn = $form.find('input[type="submit"]');
         
         if ($submitBtn.length) {
+            var originalText = $submitBtn.val();
+            var loadingText = 'Saving...';
+            
+            // Check if this is a content generation form
+            if ($form.find('#generate-ideas-btn').length || 
+                $form.find('input[name="create_now"]').length ||
+                $form.find('textarea[name="custom_prompt"]').length) {
+                loadingText = autoPostGenerator.strings.generating || 'Generating...';
+            }
+            
             $submitBtn.prop('disabled', true);
-            $submitBtn.val(autoPostGenerator.strings.generating);
+            $submitBtn.val(loadingText);
+            $submitBtn.data('original-text', originalText);
             $form.addClass('apg-loading');
+            
+            // Remove language change notification if present
+            $form.find('.language-change-notice').remove();
+            $submitBtn.removeClass('button-primary-changed');
         }
     });
     
@@ -187,6 +202,27 @@ jQuery(document).ready(function($) {
                 }
             }
         });
+    });
+    
+    // Language selector change handler - no auto-submit
+    $('select[name="interface_language"]').on('change', function() {
+        var $select = $(this);
+        var selectedLanguage = $select.val();
+        
+        // Just show a visual indicator that language has changed
+        $select.addClass('changed');
+        
+        // Show a message to remind user to save
+        var $form = $select.closest('form');
+        var $submitBtn = $form.find('input[type="submit"]');
+        if ($submitBtn.length) {
+            $submitBtn.addClass('button-primary-changed');
+            
+            // Add a small notification
+            var $notification = $('<span class="language-change-notice" style="color: #d54e21; font-size: 12px; margin-left: 10px;">Language changed - click Save to apply</span>');
+            $select.parent().find('.language-change-notice').remove();
+            $select.parent().append($notification);
+        }
     });
     
     // Character counter for text inputs
@@ -550,6 +586,31 @@ jQuery(document).ready(function($) {
             $('.ideas-list').html('<div class="notice notice-info"><p>No ideas found. Generate some ideas using the form above.</p></div>');
         }
     }
+    
+    // Handle page reload after settings are saved (language change)
+    $(window).on('load', function() {
+        // Check if we're coming back from a settings save
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('settings-updated') === 'true') {
+            // Remove any loading states that might be stuck
+            $('input[type="submit"]').prop('disabled', false);
+            $('.apg-loading').removeClass('apg-loading');
+            
+            // Restore button text
+            $('input[type="submit"]').each(function() {
+                var $btn = $(this);
+                var originalText = $btn.data('original-text');
+                if (originalText) {
+                    $btn.val(originalText);
+                } else {
+                    // Default text based on context
+                    if ($btn.closest('.general-tab, .ai-tab, .content-tab, .scheduling-tab').length) {
+                        $btn.val('Save Changes');
+                    }
+                }
+            });
+        }
+    });
     
     // Initialize components
     initializeComponents();

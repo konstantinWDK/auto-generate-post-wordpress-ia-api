@@ -100,6 +100,7 @@ class Auto_Post_Generator {
         require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-post-ideas-cpt.php';
         require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-scheduler.php';
         require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-settings.php';
+        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-translator.php';
         
         // Admin includes
         if (is_admin()) {
@@ -117,6 +118,7 @@ class Auto_Post_Generator {
         Auto_Post_Generator_Post_Ideas_CPT::get_instance();
         Auto_Post_Generator_Settings::get_instance();
         Auto_Post_Generator_Scheduler::get_instance();
+        Auto_Post_Generator_Translator::get_instance();
         
         // Initialize admin components
         if (is_admin()) {

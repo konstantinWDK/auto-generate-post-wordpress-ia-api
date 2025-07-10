@@ -70,6 +70,7 @@ class Auto_Post_Generator_Settings {
             'auto_post_category' => 'absint',
             'auto_post_tags' => 'sanitize_text_field',
             'auto_post_status' => 'sanitize_text_field',
+            'interface_language' => 'sanitize_text_field',
         );
         
         foreach ($settings as $setting => $sanitize_callback) {
@@ -197,5 +198,40 @@ class Auto_Post_Generator_Settings {
             'frequency_penalty' => floatval(self::get_setting('ai_frequency_penalty', 0.0)),
             'presence_penalty' => floatval(self::get_setting('ai_presence_penalty', 0.0)),
         );
+    }
+    
+    /**
+     * Get current interface language
+     */
+    public static function get_interface_language() {
+        return self::get_setting('interface_language', 'es');
+    }
+    
+    /**
+     * Get available languages
+     */
+    public static function get_available_languages() {
+        return array(
+            'es' => 'Español',
+            'en' => 'English',
+            'ru' => 'Русский'
+        );
+    }
+    
+    /**
+     * Get language-specific content generation instructions
+     */
+    public static function get_language_instructions($language = null) {
+        if (!$language) {
+            $language = self::get_interface_language();
+        }
+        
+        $instructions = array(
+            'es' => 'Genera el contenido en español. Utiliza un lenguaje natural y fluido apropiado para hispanohablantes.',
+            'en' => 'Generate content in English. Use natural and fluent language appropriate for English speakers.',
+            'ru' => 'Создайте контент на русском языке. Используйте естественный и плавный язык, подходящий для русскоязычных пользователей.'
+        );
+        
+        return isset($instructions[$language]) ? $instructions[$language] : $instructions['es'];
     }
 }

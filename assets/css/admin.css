@@ -6,6 +6,34 @@
     margin-bottom: 20px;
 }
 
+/* Language selector styles */
+.form-table select[name="interface_language"].changed {
+    border-color: #d54e21;
+    box-shadow: 0 0 2px rgba(213, 78, 33, 0.3);
+}
+
+.button-primary-changed {
+    background-color: #d54e21 !important;
+    border-color: #d54e21 !important;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.language-change-notice {
+    display: inline-block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* Tab content styles */
 .apg-tab-content {
     display: none;
