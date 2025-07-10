@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Auto_Post_Generator_Post_Generator {
+class Miapg_Post_Generator {
     
     /**
      * Instance
@@ -35,7 +35,7 @@ class Auto_Post_Generator_Post_Generator {
     /**
      * Generate and publish post
      */
-    public static function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $post_date, $word_count, $ai_provider = 'openai', $custom_settings = array(), $keyword = '', $source_article = '') {
+    public static function generate_and_publish_post($prompt, $category_id, $tags, $post_status, $post_date, $word_count, $ai_provider = 'openai', $custom_settings = array(), $keyword = '', $source_article = '', $is_from_idea = false) {
         // Validate and sanitize input parameters
         $prompt = sanitize_text_field($prompt);
         $category_id = absint($category_id);
@@ -58,10 +58,10 @@ class Auto_Post_Generator_Post_Generator {
         }
         
         // Get AI provider settings
-        $ai_settings = Auto_Post_Generator_Settings::get_ai_provider_settings();
+        $ai_settings = Miapg_Settings::get_ai_provider_settings();
         
         if (!$ai_settings['api_key']) {
-            return __('No API key provided for ' . $ai_provider, AUTO_POST_GENERATOR_TEXT_DOMAIN);
+            return __('No API key provided for ' . $ai_provider, MIAPG_TEXT_DOMAIN);
         }
         
         // Generate content
@@ -72,12 +72,20 @@ class Auto_Post_Generator_Post_Generator {
         }
         
         // Generate title
-        $title_result = self::generate_title($prompt, $keyword, $ai_settings);
-        
-        if (is_wp_error($title_result)) {
-            $post_title = __('Generated Post', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        if ($is_from_idea) {
+            // For posts generated from ideas, use the idea title directly
+            $post_title = $prompt;
+            // Remove quotes from title
+            $post_title = str_replace(array('"', "'"), '', $post_title);
         } else {
-            $post_title = $title_result;
+            // Generate title using AI for other cases
+            $title_result = self::generate_title($prompt, $keyword, $ai_settings);
+            
+            if (is_wp_error($title_result)) {
+                $post_title = __('Generated Post', MIAPG_TEXT_DOMAIN);
+            } else {
+                $post_title = $title_result;
+            }
         }
         
         // Create post
@@ -88,7 +96,7 @@ class Auto_Post_Generator_Post_Generator {
         }
         
         return sprintf(
-            __('Post created with ID: %d, scheduled for: %s', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+            __('Post created with ID: %d, scheduled for: %s', MIAPG_TEXT_DOMAIN),
             $post_id,
             $post_date
         );
@@ -99,22 +107,22 @@ class Auto_Post_Generator_Post_Generator {
      */
     private static function generate_content($prompt, $word_count, $keyword, $source_article, $ai_settings) {
         // Get content settings
-        $content_settings = Auto_Post_Generator_Settings::get_content_settings();
+        $content_settings = Miapg_Settings::get_content_settings();
         
         // Build custom prompt
         $seo_prompt = self::build_content_prompt($prompt, $word_count, $keyword, $source_article, $content_settings);
         
         // Get AI parameters
-        $ai_parameters = Auto_Post_Generator_Settings::get_ai_parameters();
+        $ai_parameters = Miapg_Settings::get_ai_parameters();
         
         // Prepare API request data
-        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
+        $language_instructions = Miapg_Settings::get_language_instructions();
         $data = array(
             'model' => $ai_settings['model'],
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are an SEO expert who generates blog content with HTML formatting.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . $language_instructions
+                    'content' => __('You are an SEO expert who generates blog content with HTML formatting.', MIAPG_TEXT_DOMAIN) . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',
@@ -140,7 +148,7 @@ class Auto_Post_Generator_Post_Generator {
         
         if (is_wp_error($response)) {
             return new WP_Error('api_error', sprintf(
-                __('Error in OpenAI request: %s', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                __('Error in OpenAI request: %s', MIAPG_TEXT_DOMAIN),
                 $response->get_error_message()
             ));
         }
@@ -149,7 +157,7 @@ class Auto_Post_Generator_Post_Generator {
         $result = json_decode($body, true);
         
         if (!isset($result['choices'][0]['message']['content'])) {
-            return new WP_Error('no_content', __('No content generated. API response:', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . print_r($result, true));
+            return new WP_Error('no_content', __('No content generated. API response:', MIAPG_TEXT_DOMAIN) . ' ' . print_r($result, true));
         }
         
         return $result['choices'][0]['message']['content'];
@@ -159,33 +167,33 @@ class Auto_Post_Generator_Post_Generator {
      * Generate title using AI
      */
     private static function generate_title($prompt, $keyword, $ai_settings) {
-        $title_length = Auto_Post_Generator_Settings::get_setting('title_max_length', 60);
-        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
+        $title_length = Miapg_Settings::get_setting('title_max_length', 60);
+        $language_instructions = Miapg_Settings::get_language_instructions();
         
         $title_prompt = sprintf(
-            __('Generate an attractive and concise SEO title (maximum %d characters) for an article about: %s.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+            __('Generate an attractive and concise SEO title (maximum %d characters) for an article about: %s.', MIAPG_TEXT_DOMAIN),
             $title_length,
             $prompt
         );
         
         if (!empty($keyword)) {
             $title_prompt .= ' ' . sprintf(
-                __('IMPORTANT: Include the keyword "%s" in the title naturally.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                __('IMPORTANT: Include the keyword "%s" in the title naturally.', MIAPG_TEXT_DOMAIN),
                 $keyword
             );
         }
         
-        $title_prompt .= ' ' . __('Do not use quotes in the title.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        $title_prompt .= ' ' . __('Do not use quotes in the title.', MIAPG_TEXT_DOMAIN);
         $title_prompt .= ' ' . $language_instructions;
         
-        $ai_parameters = Auto_Post_Generator_Settings::get_ai_parameters();
+        $ai_parameters = Miapg_Settings::get_ai_parameters();
         
         $title_data = array(
             'model' => $ai_settings['model'],
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are an SEO expert who generates attractive titles without quotes.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . $language_instructions
+                    'content' => __('You are an SEO expert who generates attractive titles without quotes.', MIAPG_TEXT_DOMAIN) . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',
@@ -206,14 +214,14 @@ class Auto_Post_Generator_Post_Generator {
         ));
         
         if (is_wp_error($title_response)) {
-            return new WP_Error('title_error', __('Error generating title', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            return new WP_Error('title_error', __('Error generating title', MIAPG_TEXT_DOMAIN));
         }
         
         $title_body = wp_remote_retrieve_body($title_response);
         $title_result = json_decode($title_body, true);
         
         if (!isset($title_result['choices'][0]['message']['content'])) {
-            return new WP_Error('no_title', __('No title generated', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            return new WP_Error('no_title', __('No title generated', MIAPG_TEXT_DOMAIN));
         }
         
         $post_title = trim($title_result['choices'][0]['message']['content']);
@@ -229,10 +237,10 @@ class Auto_Post_Generator_Post_Generator {
      */
     private static function build_content_prompt($prompt, $word_count, $keyword, $source_article, $content_settings) {
         // Add language instructions
-        $language_instructions = Auto_Post_Generator_Settings::get_language_instructions();
+        $language_instructions = Miapg_Settings::get_language_instructions();
         
         $seo_prompt = sprintf(
-            __('Act as an SEO and content writing expert with %s style and %s tone. Target audience: %s.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+            __('Act as an SEO and content writing expert with %s style and %s tone. Target audience: %s.', MIAPG_TEXT_DOMAIN),
             $content_settings['writing_style'],
             $content_settings['tone'],
             $content_settings['target_audience']
@@ -242,60 +250,60 @@ class Auto_Post_Generator_Post_Generator {
         
         if (!empty($keyword)) {
             $seo_prompt .= ' ' . sprintf(
-                __('IMPORTANT: Focus on the main keyword "%s" and use it strategically throughout the content for SEO.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                __('IMPORTANT: Focus on the main keyword "%s" and use it strategically throughout the content for SEO.', MIAPG_TEXT_DOMAIN),
                 $keyword
             );
         }
         
         if (!empty($source_article)) {
             $seo_prompt .= ' ' . sprintf(
-                __('Based on the following reference article, create a unique %d-word article about: %s. Reference article: %s. IMPORTANT: Do not copy the content, but create a fresh and original approach while maintaining the main ideas.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                __('Based on the following reference article, create a unique %d-word article about: %s. Reference article: %s. IMPORTANT: Do not copy the content, but create a fresh and original approach while maintaining the main ideas.', MIAPG_TEXT_DOMAIN),
                 $word_count,
                 $prompt,
                 $source_article
             );
         } else {
             $seo_prompt .= ' ' . sprintf(
-                __('Create a blog article of approximately %d words about the following topic: %s.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                __('Create a blog article of approximately %d words about the following topic: %s.', MIAPG_TEXT_DOMAIN),
                 $word_count,
                 $prompt
             );
         }
         
         // Add HTML format requirements
-        $seo_prompt .= ' ' . __('REQUIRED FORMAT: Use ONLY the following basic HTML tags:', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <h2> ' . __('for main headings', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <h3> ' . __('for subheadings', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <strong> ' . __('for bold text', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <em> ' . __('for italic text', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <p> ' . __('for paragraphs', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <ul> and <li> ' . __('for bullet lists', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <ol> and <li> ' . __('for numbered lists', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' - <br> ' . __('for line breaks if necessary', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' ' . __('DO NOT use: div, span, class, id, style, table, img, script, or any complex HTML tags.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        $seo_prompt .= ' ' . __('REQUIRED FORMAT: Use ONLY the following basic HTML tags:', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <h2> ' . __('for main headings', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <h3> ' . __('for subheadings', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <strong> ' . __('for bold text', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <em> ' . __('for italic text', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <p> ' . __('for paragraphs', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <ul> and <li> ' . __('for bullet lists', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <ol> and <li> ' . __('for numbered lists', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' - <br> ' . __('for line breaks if necessary', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' ' . __('DO NOT use: div, span, class, id, style, table, img, script, or any complex HTML tags.', MIAPG_TEXT_DOMAIN);
         
         // Add content structure
-        $seo_prompt .= ' ' . __('Structure the content as follows:', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' 1. ' . __('Introduce the topic with an attractive paragraph.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' 2. ' . __('Use <h2> headings for main sections.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' 3. ' . __('Use <h3> headings for subsections when necessary.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        $seo_prompt .= ' ' . __('Structure the content as follows:', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' 1. ' . __('Introduce the topic with an attractive paragraph.', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' 2. ' . __('Use <h2> headings for main sections.', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' 3. ' . __('Use <h3> headings for subsections when necessary.', MIAPG_TEXT_DOMAIN);
         
         if ($content_settings['include_lists'] === 'yes') {
-            $seo_prompt .= ' 4. ' . __('Include at least one bullet list (<ul><li>) or numbered list (<ol><li>).', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+            $seo_prompt .= ' 4. ' . __('Include at least one bullet list (<ul><li>) or numbered list (<ol><li>).', MIAPG_TEXT_DOMAIN);
         }
         
-        $seo_prompt .= ' 5. ' . __('Use <strong> for bold and <em> for italic when appropriate.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
-        $seo_prompt .= ' 6. ' . __('Conclude with a summary paragraph.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        $seo_prompt .= ' 5. ' . __('Use <strong> for bold and <em> for italic when appropriate.', MIAPG_TEXT_DOMAIN);
+        $seo_prompt .= ' 6. ' . __('Conclude with a summary paragraph.', MIAPG_TEXT_DOMAIN);
         
         if ($content_settings['include_faq'] === 'yes') {
-            $seo_prompt .= ' 7. ' . __('Add an FAQ section with 3 questions and answers related to the topic at the end of the article.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+            $seo_prompt .= ' 7. ' . __('Add an FAQ section with 3 questions and answers related to the topic at the end of the article.', MIAPG_TEXT_DOMAIN);
         }
         
         if ($content_settings['custom_instructions']) {
-            $seo_prompt .= ' ' . __('Additional instructions:', AUTO_POST_GENERATOR_TEXT_DOMAIN) . ' ' . $content_settings['custom_instructions'];
+            $seo_prompt .= ' ' . __('Additional instructions:', MIAPG_TEXT_DOMAIN) . ' ' . $content_settings['custom_instructions'];
         }
         
-        $seo_prompt .= ' ' . __('Make sure the content is informative, engaging and SEO optimized. Use ONLY the basic HTML tags mentioned. DO NOT include a title for the article.', AUTO_POST_GENERATOR_TEXT_DOMAIN);
+        $seo_prompt .= ' ' . __('Make sure the content is informative, engaging and SEO optimized. Use ONLY the basic HTML tags mentioned. DO NOT include a title for the article.', MIAPG_TEXT_DOMAIN);
         
         return $seo_prompt;
     }
@@ -326,7 +334,7 @@ class Auto_Post_Generator_Post_Generator {
         
         if (is_wp_error($post_id)) {
             return new WP_Error('post_creation_failed', sprintf(
-                __('Error creating post: %s', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                __('Error creating post: %s', MIAPG_TEXT_DOMAIN),
                 $post_id->get_error_message()
             ));
         }

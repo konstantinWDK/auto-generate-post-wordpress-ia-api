@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Auto_Post_Generator_Settings {
+class Miapg_Settings {
     
     /**
      * Instance
@@ -19,10 +19,10 @@ class Auto_Post_Generator_Settings {
      * Settings groups
      */
     private $settings_groups = array(
-        'general' => 'my_plugin_settings_group',
-        'ai' => 'my_plugin_ai_settings_group',
-        'content' => 'my_plugin_content_settings_group',
-        'scheduling' => 'my_plugin_scheduling_settings_group',
+        'general' => 'miapg_settings_group',
+        'ai' => 'miapg_ai_settings_group',
+        'content' => 'miapg_content_settings_group',
+        'scheduling' => 'miapg_scheduling_settings_group',
     );
     
     /**
@@ -64,13 +64,13 @@ class Auto_Post_Generator_Settings {
      */
     private function register_general_settings() {
         $settings = array(
-            'ai_provider' => 'sanitize_text_field',
-            'openai_api_key' => 'sanitize_text_field',
-            'deepseek_api_key' => 'sanitize_text_field',
-            'auto_post_category' => 'absint',
-            'auto_post_tags' => 'sanitize_text_field',
-            'auto_post_status' => 'sanitize_text_field',
-            'interface_language' => 'sanitize_text_field',
+            'miapg_ai_provider' => 'sanitize_text_field',
+            'miapg_openai_api_key' => 'sanitize_text_field',
+            'miapg_deepseek_api_key' => 'sanitize_text_field',
+            'miapg_post_category' => 'absint',
+            'miapg_post_tags' => 'sanitize_text_field',
+            'miapg_post_status' => 'sanitize_text_field',
+            'miapg_interface_language' => 'sanitize_text_field',
         );
         
         foreach ($settings as $setting => $sanitize_callback) {
@@ -83,13 +83,13 @@ class Auto_Post_Generator_Settings {
      */
     private function register_ai_settings() {
         $settings = array(
-            'openai_model' => 'sanitize_text_field',
-            'deepseek_model' => 'sanitize_text_field',
-            'ai_temperature' => 'sanitize_text_field',
-            'ai_max_tokens' => 'absint',
-            'ai_top_p' => 'sanitize_text_field',
-            'ai_frequency_penalty' => 'sanitize_text_field',
-            'ai_presence_penalty' => 'sanitize_text_field',
+            'miapg_openai_model' => 'sanitize_text_field',
+            'miapg_deepseek_model' => 'sanitize_text_field',
+            'miapg_ai_temperature' => 'sanitize_text_field',
+            'miapg_ai_max_tokens' => 'absint',
+            'miapg_ai_top_p' => 'sanitize_text_field',
+            'miapg_ai_frequency_penalty' => 'sanitize_text_field',
+            'miapg_ai_presence_penalty' => 'sanitize_text_field',
         );
         
         foreach ($settings as $setting => $sanitize_callback) {
@@ -102,16 +102,16 @@ class Auto_Post_Generator_Settings {
      */
     private function register_content_settings() {
         $settings = array(
-            'auto_post_prompt' => 'sanitize_textarea_field',
-            'auto_post_word_count' => 'absint',
-            'writing_style' => 'sanitize_text_field',
-            'target_audience' => 'sanitize_text_field',
-            'tone' => 'sanitize_text_field',
-            'include_faq' => 'sanitize_text_field',
-            'include_lists' => 'sanitize_text_field',
-            'seo_focus' => 'sanitize_text_field',
-            'title_max_length' => 'absint',
-            'custom_instructions' => 'sanitize_textarea_field',
+            'miapg_post_prompt' => 'sanitize_textarea_field',
+            'miapg_post_word_count' => 'absint',
+            'miapg_writing_style' => 'sanitize_text_field',
+            'miapg_target_audience' => 'sanitize_text_field',
+            'miapg_tone' => 'sanitize_text_field',
+            'miapg_include_faq' => 'sanitize_text_field',
+            'miapg_include_lists' => 'sanitize_text_field',
+            'miapg_seo_focus' => 'sanitize_text_field',
+            'miapg_title_max_length' => 'absint',
+            'miapg_custom_instructions' => 'sanitize_textarea_field',
         );
         
         foreach ($settings as $setting => $sanitize_callback) {
@@ -124,12 +124,12 @@ class Auto_Post_Generator_Settings {
      */
     private function register_scheduling_settings() {
         $settings = array(
-            'auto_scheduling_enabled' => 'sanitize_text_field',
-            'posting_frequency' => 'sanitize_text_field',
-            'posting_time' => 'sanitize_text_field',
-            'posting_day' => 'sanitize_text_field',
-            'auto_topics_list' => 'sanitize_textarea_field',
-            'auto_delete_used_ideas' => 'sanitize_text_field',
+            'miapg_scheduling_enabled' => 'sanitize_text_field',
+            'miapg_posting_frequency' => 'sanitize_text_field',
+            'miapg_posting_time' => 'sanitize_text_field',
+            'miapg_posting_day' => 'sanitize_text_field',
+            'miapg_topics_list' => 'sanitize_textarea_field',
+            'miapg_delete_used_ideas' => 'sanitize_text_field',
         );
         
         foreach ($settings as $setting => $sanitize_callback) {
@@ -155,19 +155,19 @@ class Auto_Post_Generator_Settings {
      * Get all AI provider settings
      */
     public static function get_ai_provider_settings() {
-        $provider = self::get_setting('ai_provider', 'openai');
+        $provider = self::get_setting('miapg_ai_provider', 'openai');
         
         if ($provider === 'deepseek') {
             return array(
-                'api_key' => self::get_setting('deepseek_api_key'),
+                'api_key' => self::get_setting('miapg_deepseek_api_key'),
                 'endpoint' => 'https://api.deepseek.com/v1/chat/completions',
-                'model' => self::get_setting('deepseek_model', 'deepseek-chat'),
+                'model' => self::get_setting('miapg_deepseek_model', 'deepseek-chat'),
             );
         } else {
             return array(
-                'api_key' => self::get_setting('openai_api_key'),
+                'api_key' => self::get_setting('miapg_openai_api_key'),
                 'endpoint' => 'https://api.openai.com/v1/chat/completions',
-                'model' => self::get_setting('openai_model', 'gpt-4'),
+                'model' => self::get_setting('miapg_openai_model', 'gpt-4'),
             );
         }
     }
@@ -177,13 +177,13 @@ class Auto_Post_Generator_Settings {
      */
     public static function get_content_settings() {
         return array(
-            'writing_style' => self::get_setting('writing_style', 'informativo'),
-            'target_audience' => self::get_setting('target_audience', 'general'),
-            'tone' => self::get_setting('tone', 'profesional'),
-            'include_faq' => self::get_setting('include_faq', 'yes'),
-            'include_lists' => self::get_setting('include_lists', 'yes'),
-            'seo_focus' => self::get_setting('seo_focus', 'medium'),
-            'custom_instructions' => self::get_setting('custom_instructions', ''),
+            'writing_style' => self::get_setting('miapg_writing_style', 'informativo'),
+            'target_audience' => self::get_setting('miapg_target_audience', 'general'),
+            'tone' => self::get_setting('miapg_tone', 'profesional'),
+            'include_faq' => self::get_setting('miapg_include_faq', 'yes'),
+            'include_lists' => self::get_setting('miapg_include_lists', 'yes'),
+            'seo_focus' => self::get_setting('miapg_seo_focus', 'medium'),
+            'custom_instructions' => self::get_setting('miapg_custom_instructions', ''),
         );
     }
     
@@ -192,11 +192,11 @@ class Auto_Post_Generator_Settings {
      */
     public static function get_ai_parameters() {
         return array(
-            'temperature' => floatval(self::get_setting('ai_temperature', 0.7)),
-            'max_tokens' => intval(self::get_setting('ai_max_tokens', 2000)),
-            'top_p' => floatval(self::get_setting('ai_top_p', 1.0)),
-            'frequency_penalty' => floatval(self::get_setting('ai_frequency_penalty', 0.0)),
-            'presence_penalty' => floatval(self::get_setting('ai_presence_penalty', 0.0)),
+            'temperature' => floatval(self::get_setting('miapg_ai_temperature', 0.7)),
+            'max_tokens' => intval(self::get_setting('miapg_ai_max_tokens', 2000)),
+            'top_p' => floatval(self::get_setting('miapg_ai_top_p', 1.0)),
+            'frequency_penalty' => floatval(self::get_setting('miapg_ai_frequency_penalty', 0.0)),
+            'presence_penalty' => floatval(self::get_setting('miapg_ai_presence_penalty', 0.0)),
         );
     }
     
@@ -204,7 +204,7 @@ class Auto_Post_Generator_Settings {
      * Get current interface language
      */
     public static function get_interface_language() {
-        return self::get_setting('interface_language', 'es');
+        return self::get_setting('miapg_interface_language', 'es');
     }
     
     /**

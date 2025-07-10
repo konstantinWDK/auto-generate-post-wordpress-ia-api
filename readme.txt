@@ -1,4 +1,4 @@
-=== Auto Post Generator Pro ===
+=== MaestrIA post generator ===
 Contributors: konstantinWDK
 Donate link: https://webdesignerk.com/donate
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO, generador contenido, automatización blog, IA, programación, ideas posts
@@ -11,7 +11,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 == Descripción ==
 
-Auto Post Generator Pro es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
+MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
 🚀 **NUEVO en la Versión 3.1:**
 - **Gestión Completa de Ideas**: Sistema de Custom Post Type para almacenar y gestionar ideas

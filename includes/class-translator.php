@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Auto_Post_Generator_Translator {
+class Miapg_Translator {
     
     /**
      * Instance
@@ -39,7 +39,7 @@ class Auto_Post_Generator_Translator {
      * Constructor
      */
     private function __construct() {
-        $this->current_language = Auto_Post_Generator_Settings::get_interface_language();
+        $this->current_language = Miapg_Settings::get_interface_language();
         $this->load_translations();
     }
     
@@ -285,11 +285,11 @@ class Auto_Post_Generator_Translator {
 }
 
 // Global translation function
-function apg_translate($key) {
-    return Auto_Post_Generator_Translator::translate($key);
+function miapg_translate($key) {
+    return Miapg_Translator::translate($key);
 }
 
 // Alias for shorter calls
-function apg_t($key) {
-    return Auto_Post_Generator_Translator::translate($key);
+function miapg_t($key) {
+    return Miapg_Translator::translate($key);
 }

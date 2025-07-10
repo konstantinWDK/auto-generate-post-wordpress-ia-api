@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Auto_Post_Generator_Admin {
+class Miapg_Admin {
     
     /**
      * Instance
@@ -39,21 +39,21 @@ class Auto_Post_Generator_Admin {
      */
     public function add_admin_menu() {
         add_menu_page(
-            __('Auto Post Generator', AUTO_POST_GENERATOR_TEXT_DOMAIN),
-            __('Auto Post Generator', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+            __('Auto Post Generator', MIAPG_TEXT_DOMAIN),
+            __('Auto Post Generator', MIAPG_TEXT_DOMAIN),
             'manage_options',
-            'auto-post-generator',
+            'miapg-post-generator',
             array($this, 'admin_page_content'),
             'dashicons-edit-page',
             30
         );
         
         add_submenu_page(
-            'auto-post-generator',
-            __('Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN),
-            __('Settings', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+            'miapg-post-generator',
+            __('Settings', MIAPG_TEXT_DOMAIN),
+            __('Settings', MIAPG_TEXT_DOMAIN),
             'manage_options',
-            'auto-post-generator',
+            'miapg-post-generator',
             array($this, 'admin_page_content')
         );
     }
@@ -63,7 +63,7 @@ class Auto_Post_Generator_Admin {
      */
     public function admin_page_content() {
         // Load admin pages handler
-        Auto_Post_Generator_Admin_Pages::get_instance()->render_main_page();
+        Miapg_Admin_Pages::get_instance()->render_main_page();
     }
     
     /**
@@ -71,36 +71,36 @@ class Auto_Post_Generator_Admin {
      */
     public function enqueue_admin_scripts($hook) {
         // Only load on plugin pages
-        if (strpos($hook, 'auto-post-generator') === false) {
+        if (strpos($hook, 'miapg-post-generator') === false) {
             return;
         }
         
         wp_enqueue_style(
-            'auto-post-generator-admin',
-            AUTO_POST_GENERATOR_PLUGIN_URL . 'assets/css/admin.css',
+            'miapg-post-generator-admin',
+            MIAPG_PLUGIN_URL . 'assets/css/admin.css',
             array(),
-            AUTO_POST_GENERATOR_VERSION
+            MIAPG_VERSION
         );
         
         wp_enqueue_script(
-            'auto-post-generator-admin',
-            AUTO_POST_GENERATOR_PLUGIN_URL . 'assets/js/admin.js',
+            'miapg-post-generator-admin',
+            MIAPG_PLUGIN_URL . 'assets/js/admin.js',
             array('jquery'),
-            AUTO_POST_GENERATOR_VERSION,
+            MIAPG_VERSION,
             true
         );
         
         // Localize script
         wp_localize_script(
-            'auto-post-generator-admin',
-            'autoPostGenerator',
+            'miapg-post-generator-admin',
+            'miapgAdmin',
             array(
                 'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('auto_post_generator_nonce'),
+                'nonce' => wp_create_nonce('miapg_nonce'),
                 'strings' => array(
-                    'confirm_delete' => __('Are you sure you want to delete this idea?', AUTO_POST_GENERATOR_TEXT_DOMAIN),
-                    'generating' => __('Generating...', AUTO_POST_GENERATOR_TEXT_DOMAIN),
-                    'error' => __('An error occurred. Please try again.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    'confirm_delete' => __('Are you sure you want to delete this idea?', MIAPG_TEXT_DOMAIN),
+                    'generating' => __('Generating...', MIAPG_TEXT_DOMAIN),
+                    'error' => __('An error occurred. Please try again.', MIAPG_TEXT_DOMAIN),
                 )
             )
         );
@@ -111,9 +111,9 @@ class Auto_Post_Generator_Admin {
      */
     public function admin_notices() {
         // Check if API keys are configured
-        $openai_key = Auto_Post_Generator_Settings::get_setting('openai_api_key');
-        $deepseek_key = Auto_Post_Generator_Settings::get_setting('deepseek_api_key');
-        $provider = Auto_Post_Generator_Settings::get_setting('ai_provider', 'openai');
+        $openai_key = Miapg_Settings::get_setting('miapg_openai_api_key');
+        $deepseek_key = Miapg_Settings::get_setting('miapg_deepseek_api_key');
+        $provider = Miapg_Settings::get_setting('miapg_ai_provider', 'openai');
         
         $show_notice = false;
         
@@ -124,13 +124,13 @@ class Auto_Post_Generator_Admin {
         }
         
         if ($show_notice) {
-            $settings_url = admin_url('admin.php?page=auto-post-generator&tab=general');
+            $settings_url = admin_url('admin.php?page=miapg-post-generator&tab=general');
             ?>
             <div class="notice notice-warning is-dismissible">
                 <p>
                     <?php
                     printf(
-                        __('Auto Post Generator: Please configure your %s API key in the <a href="%s">settings</a> to start generating content.', AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                        __('Auto Post Generator: Please configure your %s API key in the <a href="%s">settings</a> to start generating content.', MIAPG_TEXT_DOMAIN),
                         ucfirst($provider),
                         $settings_url
                     );

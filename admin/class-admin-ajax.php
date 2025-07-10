@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Auto_Post_Generator_Admin_Ajax {
+class Miapg_Admin_Ajax {
     
     /**
      * Instance
@@ -42,13 +42,13 @@ class Auto_Post_Generator_Admin_Ajax {
      */
     public function generate_post_ideas() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
-            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        if (!wp_verify_nonce($_POST['nonce'], 'miapg_nonce')) {
+            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            wp_die(__('Insufficient permissions', MIAPG_TEXT_DOMAIN));
         }
         
         // Parse form data
@@ -60,12 +60,12 @@ class Auto_Post_Generator_Admin_Ajax {
         
         if (empty($main_topic)) {
             wp_send_json_error(array(
-                'message' => __('Please enter a main topic.', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Please enter a main topic.', MIAPG_TEXT_DOMAIN)
             ));
         }
         
         // Generate ideas
-        $result = Auto_Post_Generator_Ideas_Generator::generate_post_ideas($main_topic, $ideas_count, $content_type);
+        $result = Miapg_Ideas_Generator::generate_post_ideas($main_topic, $ideas_count, $content_type);
         
         if ($result) {
             wp_send_json_success(array(
@@ -73,7 +73,7 @@ class Auto_Post_Generator_Admin_Ajax {
             ));
         } else {
             wp_send_json_error(array(
-                'message' => __('Error generating ideas. Please check your API configuration.', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Error generating ideas. Please check your API configuration.', MIAPG_TEXT_DOMAIN)
             ));
         }
     }
@@ -83,17 +83,17 @@ class Auto_Post_Generator_Admin_Ajax {
      */
     public function get_recent_ideas() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
-            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        if (!wp_verify_nonce($_POST['nonce'], 'miapg_nonce')) {
+            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            wp_die(__('Insufficient permissions', MIAPG_TEXT_DOMAIN));
         }
         
         $recent_ideas = get_posts(array(
-            'post_type' => 'post_idea',
+            'post_type' => 'miapg_post_idea',
             'numberposts' => 5,
             'post_status' => 'publish',
             'orderby' => 'date',
@@ -106,28 +106,28 @@ class Auto_Post_Generator_Admin_Ajax {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <th><?php _e('Idea', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Topic', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Keyword', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
-                        <th><?php _e('Actions', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Idea', MIAPG_TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Topic', MIAPG_TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Keyword', MIAPG_TEXT_DOMAIN); ?></th>
+                        <th><?php _e('Actions', MIAPG_TEXT_DOMAIN); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($recent_ideas as $idea): ?>
                         <?php
-                        $topic = get_post_meta($idea->ID, '_post_idea_topic', true);
-                        $keyword = get_post_meta($idea->ID, '_post_idea_keyword', true);
+                        $topic = get_post_meta($idea->ID, '_miapg_idea_topic', true);
+                        $keyword = get_post_meta($idea->ID, '_miapg_idea_keyword', true);
                         ?>
                         <tr>
                             <td><strong><?php echo esc_html($idea->post_title); ?></strong></td>
                             <td><?php echo esc_html($topic); ?></td>
-                            <td><?php echo $keyword ? esc_html($keyword) : '<em>' . __('Not defined', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</em>'; ?></td>
+                            <td><?php echo $keyword ? esc_html($keyword) : '<em>' . __('Not defined', MIAPG_TEXT_DOMAIN) . '</em>'; ?></td>
                             <td>
-                                <a href="<?php echo admin_url('admin.php?page=auto-post-generator&tab=create&idea_id=' . $idea->ID); ?>" class="button button-small">
-                                    <?php _e('Generate Post', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                                <a href="<?php echo admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID); ?>" class="button button-small">
+                                    <?php _e('Generate Post', MIAPG_TEXT_DOMAIN); ?>
                                 </a>
                                 <a href="<?php echo admin_url('edit.php?post_type=post_idea'); ?>" class="button button-small">
-                                    <?php _e('View All', AUTO_POST_GENERATOR_TEXT_DOMAIN); ?>
+                                    <?php _e('View All', MIAPG_TEXT_DOMAIN); ?>
                                 </a>
                             </td>
                         </tr>
@@ -142,7 +142,7 @@ class Auto_Post_Generator_Admin_Ajax {
             ));
         } else {
             wp_send_json_success(array(
-                'html' => '<p>' . __('No ideas found.', AUTO_POST_GENERATOR_TEXT_DOMAIN) . '</p>'
+                'html' => '<p>' . __('No ideas found.', MIAPG_TEXT_DOMAIN) . '</p>'
             ));
         }
     }
@@ -152,13 +152,13 @@ class Auto_Post_Generator_Admin_Ajax {
      */
     public function validate_api_key() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
-            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        if (!wp_verify_nonce($_POST['nonce'], 'miapg_nonce')) {
+            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            wp_die(__('Insufficient permissions', MIAPG_TEXT_DOMAIN));
         }
         
         $api_key = sanitize_text_field($_POST['api_key']);
@@ -166,7 +166,7 @@ class Auto_Post_Generator_Admin_Ajax {
         
         if (empty($api_key)) {
             wp_send_json_error(array(
-                'message' => __('API key is required', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('API key is required', MIAPG_TEXT_DOMAIN)
             ));
         }
         
@@ -175,11 +175,11 @@ class Auto_Post_Generator_Admin_Ajax {
         
         if ($is_valid) {
             wp_send_json_success(array(
-                'message' => __('API key is valid', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('API key is valid', MIAPG_TEXT_DOMAIN)
             ));
         } else {
             wp_send_json_error(array(
-                'message' => __('API key is invalid', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('API key is invalid', MIAPG_TEXT_DOMAIN)
             ));
         }
     }
@@ -189,28 +189,28 @@ class Auto_Post_Generator_Admin_Ajax {
      */
     public function save_setting() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
-            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        if (!wp_verify_nonce($_POST['nonce'], 'miapg_nonce')) {
+            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            wp_die(__('Insufficient permissions', MIAPG_TEXT_DOMAIN));
         }
         
         $setting = sanitize_text_field($_POST['setting']);
         $value = sanitize_text_field($_POST['value']);
         
         // Save setting
-        $result = Auto_Post_Generator_Settings::update_setting($setting, $value);
+        $result = Miapg_Settings::update_setting($setting, $value);
         
         if ($result) {
             wp_send_json_success(array(
-                'message' => __('Setting saved', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Setting saved', MIAPG_TEXT_DOMAIN)
             ));
         } else {
             wp_send_json_error(array(
-                'message' => __('Error saving setting', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Error saving setting', MIAPG_TEXT_DOMAIN)
             ));
         }
     }
@@ -220,28 +220,28 @@ class Auto_Post_Generator_Admin_Ajax {
      */
     public function delete_idea() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
-            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        if (!wp_verify_nonce($_POST['nonce'], 'miapg_nonce')) {
+            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            wp_die(__('Insufficient permissions', MIAPG_TEXT_DOMAIN));
         }
         
         $idea_id = absint($_POST['idea_id']);
         
         if (empty($idea_id)) {
             wp_send_json_error(array(
-                'message' => __('Invalid idea ID', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Invalid idea ID', MIAPG_TEXT_DOMAIN)
             ));
         }
         
         // Get idea title for confirmation
         $idea_post = get_post($idea_id);
-        if (!$idea_post || $idea_post->post_type !== 'post_idea') {
+        if (!$idea_post || $idea_post->post_type !== 'miapg_post_idea') {
             wp_send_json_error(array(
-                'message' => __('Idea not found', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Idea not found', MIAPG_TEXT_DOMAIN)
             ));
         }
         
@@ -250,11 +250,11 @@ class Auto_Post_Generator_Admin_Ajax {
         
         if ($result) {
             wp_send_json_success(array(
-                'message' => sprintf(__('Idea "%s" deleted successfully', AUTO_POST_GENERATOR_TEXT_DOMAIN), $idea_post->post_title)
+                'message' => sprintf(__('Idea "%s" deleted successfully', MIAPG_TEXT_DOMAIN), $idea_post->post_title)
             ));
         } else {
             wp_send_json_error(array(
-                'message' => __('Error deleting idea', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('Error deleting idea', MIAPG_TEXT_DOMAIN)
             ));
         }
     }
@@ -264,13 +264,13 @@ class Auto_Post_Generator_Admin_Ajax {
      */
     public function bulk_ideas_action() {
         // Check nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'auto_post_generator_nonce')) {
-            wp_die(__('Security check failed', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+        if (!wp_verify_nonce($_POST['nonce'], 'miapg_nonce')) {
+            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('Insufficient permissions', AUTO_POST_GENERATOR_TEXT_DOMAIN));
+            wp_die(__('Insufficient permissions', MIAPG_TEXT_DOMAIN));
         }
         
         $bulk_action = sanitize_text_field($_POST['bulk_action']);
@@ -278,7 +278,7 @@ class Auto_Post_Generator_Admin_Ajax {
         
         if (empty($idea_ids)) {
             wp_send_json_error(array(
-                'message' => __('No ideas selected', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('No ideas selected', MIAPG_TEXT_DOMAIN)
             ));
         }
         
@@ -297,7 +297,7 @@ class Auto_Post_Generator_Admin_Ajax {
                 }
                 
                 $message = sprintf(
-                    _n('%d idea deleted successfully.', '%d ideas deleted successfully.', $success_count, AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    _n('%d idea deleted successfully.', '%d ideas deleted successfully.', $success_count, MIAPG_TEXT_DOMAIN),
                     $success_count
                 );
                 break;
@@ -305,24 +305,24 @@ class Auto_Post_Generator_Admin_Ajax {
             case 'bulk_generate_posts':
                 foreach ($idea_ids as $idea_id) {
                     $idea_post = get_post($idea_id);
-                    if (!$idea_post || $idea_post->post_type !== 'post_idea') {
+                    if (!$idea_post || $idea_post->post_type !== 'miapg_post_idea') {
                         $failed_count++;
                         continue;
                     }
                     
                     // Get idea details
-                    $idea_keyword = get_post_meta($idea_id, '_post_idea_keyword', true);
+                    $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
                     $prompt = $idea_post->post_title;
                     
                     // Use default settings
-                    $category_id = Auto_Post_Generator_Settings::get_setting('auto_post_category', 1);
-                    $tags = explode(',', Auto_Post_Generator_Settings::get_setting('auto_post_tags', ''));
-                    $post_status = Auto_Post_Generator_Settings::get_setting('auto_post_status', 'draft');
-                    $word_count = Auto_Post_Generator_Settings::get_setting('auto_post_word_count', '500');
-                    $ai_provider = Auto_Post_Generator_Settings::get_setting('ai_provider', 'openai');
+                    $category_id = Miapg_Settings::get_setting('auto_post_category', 1);
+                    $tags = explode(',', Miapg_Settings::get_setting('auto_post_tags', ''));
+                    $post_status = Miapg_Settings::get_setting('auto_post_status', 'draft');
+                    $word_count = Miapg_Settings::get_setting('auto_post_word_count', '500');
+                    $ai_provider = Miapg_Settings::get_setting('ai_provider', 'openai');
                     
                     // Generate post
-                    $result = Auto_Post_Generator_Post_Generator::generate_and_publish_post(
+                    $result = Miapg_Post_Generator::generate_and_publish_post(
                         $prompt,
                         $category_id,
                         $tags,
@@ -343,7 +343,7 @@ class Auto_Post_Generator_Admin_Ajax {
                 }
                 
                 $message = sprintf(
-                    _n('%d post generated successfully.', '%d posts generated successfully.', $success_count, AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    _n('%d post generated successfully.', '%d posts generated successfully.', $success_count, MIAPG_TEXT_DOMAIN),
                     $success_count
                 );
                 break;
@@ -352,12 +352,12 @@ class Auto_Post_Generator_Admin_Ajax {
                 $keyword = sanitize_text_field($_POST['keyword']);
                 if (empty($keyword)) {
                     wp_send_json_error(array(
-                        'message' => __('Keyword is required', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                        'message' => __('Keyword is required', MIAPG_TEXT_DOMAIN)
                     ));
                 }
                 
                 foreach ($idea_ids as $idea_id) {
-                    $result = update_post_meta($idea_id, '_post_idea_keyword', $keyword);
+                    $result = update_post_meta($idea_id, '_miapg_idea_keyword', $keyword);
                     if ($result !== false) {
                         $success_count++;
                     } else {
@@ -366,7 +366,7 @@ class Auto_Post_Generator_Admin_Ajax {
                 }
                 
                 $message = sprintf(
-                    _n('%d idea updated with keyword "%s".', '%d ideas updated with keyword "%s".', $success_count, AUTO_POST_GENERATOR_TEXT_DOMAIN),
+                    _n('%d idea updated with keyword "%s".', '%d ideas updated with keyword "%s".', $success_count, MIAPG_TEXT_DOMAIN),
                     $success_count,
                     $keyword
                 );
@@ -374,7 +374,7 @@ class Auto_Post_Generator_Admin_Ajax {
                 
             default:
                 wp_send_json_error(array(
-                    'message' => __('Invalid bulk action', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                    'message' => __('Invalid bulk action', MIAPG_TEXT_DOMAIN)
                 ));
         }
         
@@ -386,7 +386,7 @@ class Auto_Post_Generator_Admin_Ajax {
             ));
         } else {
             wp_send_json_error(array(
-                'message' => __('No actions completed successfully', AUTO_POST_GENERATOR_TEXT_DOMAIN)
+                'message' => __('No actions completed successfully', MIAPG_TEXT_DOMAIN)
             ));
         }
     }

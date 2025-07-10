@@ -1,5 +1,5 @@
 /**
- * Admin JavaScript for Auto Post Generator
+ * Admin JavaScript for MIAPG
  */
 
 jQuery(document).ready(function($) {
@@ -45,7 +45,7 @@ jQuery(document).ready(function($) {
             if ($form.find('#generate-ideas-btn').length || 
                 $form.find('input[name="create_now"]').length ||
                 $form.find('textarea[name="custom_prompt"]').length) {
-                loadingText = autoPostGenerator.strings.generating || 'Generating...';
+                loadingText = miapgAdmin.strings.generating || 'Generating...';
             }
             
             $submitBtn.prop('disabled', true);
@@ -69,15 +69,15 @@ jQuery(document).ready(function($) {
         
         // Show loading state
         $btn.prop('disabled', true);
-        $btn.html('<span class="apg-spinner"></span>' + autoPostGenerator.strings.generating);
+        $btn.html('<span class="apg-spinner"></span>' + miapgAdmin.strings.generating);
         
         // Make AJAX request
         $.ajax({
-            url: autoPostGenerator.ajaxurl,
+            url: miapgAdmin.ajaxurl,
             type: 'POST',
             data: {
                 action: 'generate_post_ideas',
-                nonce: autoPostGenerator.nonce,
+                nonce: miapgAdmin.nonce,
                 form_data: formData
             },
             success: function(response) {
@@ -91,11 +91,11 @@ jQuery(document).ready(function($) {
                     // Refresh ideas list if present
                     refreshIdeasList();
                 } else {
-                    showMessage(response.data.message || autoPostGenerator.strings.error, 'error');
+                    showMessage(response.data.message || miapgAdmin.strings.error, 'error');
                 }
             },
             error: function() {
-                showMessage(autoPostGenerator.strings.error, 'error');
+                showMessage(miapgAdmin.strings.error, 'error');
             },
             complete: function() {
                 // Reset button state
@@ -115,7 +115,7 @@ jQuery(document).ready(function($) {
         var $row = $btn.closest('tr');
         
         // Show confirmation dialog
-        var confirmMessage = autoPostGenerator.strings.confirm_delete_idea || 
+        var confirmMessage = miapgAdmin.strings.confirm_delete_idea || 
                             'Are you sure you want to delete the idea "' + ideaTitle + '"?';
         
         if (!confirm(confirmMessage)) {
@@ -128,11 +128,11 @@ jQuery(document).ready(function($) {
         
         // Make AJAX request
         $.ajax({
-            url: autoPostGenerator.ajaxurl,
+            url: miapgAdmin.ajaxurl,
             type: 'POST',
             data: {
                 action: 'delete_idea',
-                nonce: autoPostGenerator.nonce,
+                nonce: miapgAdmin.nonce,
                 idea_id: ideaId
             },
             success: function(response) {
@@ -152,7 +152,7 @@ jQuery(document).ready(function($) {
                         var $table = $('.ideas-list table tbody');
                         if ($table.find('tr').length === 0) {
                             $('.ideas-list').html('<div class="notice notice-info"><p>' + 
-                                (autoPostGenerator.strings.no_ideas || 'No ideas found. Generate some ideas using the form above.') + 
+                                (miapgAdmin.strings.no_ideas || 'No ideas found. Generate some ideas using the form above.') + 
                                 '</p></div>');
                         }
                     });
@@ -161,19 +161,19 @@ jQuery(document).ready(function($) {
                     showMessage(response.data.message, 'success');
                 } else {
                     // Show error message
-                    showMessage(response.data.message || autoPostGenerator.strings.error, 'error');
+                    showMessage(response.data.message || miapgAdmin.strings.error, 'error');
                     
                     // Reset button state
                     $btn.prop('disabled', false);
-                    $btn.html('🗑️ ' + (autoPostGenerator.strings.delete || 'Delete'));
+                    $btn.html('🗑️ ' + (miapgAdmin.strings.delete || 'Delete'));
                 }
             },
             error: function() {
-                showMessage(autoPostGenerator.strings.error || 'An error occurred', 'error');
+                showMessage(miapgAdmin.strings.error || 'An error occurred', 'error');
                 
                 // Reset button state
                 $btn.prop('disabled', false);
-                $btn.html('🗑️ ' + (autoPostGenerator.strings.delete || 'Delete'));
+                $btn.html('🗑️ ' + (miapgAdmin.strings.delete || 'Delete'));
             }
         });
     });
@@ -185,11 +185,11 @@ jQuery(document).ready(function($) {
         var fieldValue = $field.val();
         
         $.ajax({
-            url: autoPostGenerator.ajaxurl,
+            url: miapgAdmin.ajaxurl,
             type: 'POST',
             data: {
                 action: 'save_setting',
-                nonce: autoPostGenerator.nonce,
+                nonce: miapgAdmin.nonce,
                 setting: fieldName,
                 value: fieldValue
             },
@@ -308,11 +308,11 @@ jQuery(document).ready(function($) {
         var $ideasList = $('#recent-ideas-list');
         if ($ideasList.length) {
             $.ajax({
-                url: autoPostGenerator.ajaxurl,
+                url: miapgAdmin.ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'get_recent_ideas',
-                    nonce: autoPostGenerator.nonce
+                    nonce: miapgAdmin.nonce
                 },
                 success: function(response) {
                     if (response.success) {
@@ -357,11 +357,11 @@ jQuery(document).ready(function($) {
             $input.addClass('validating');
             
             $.ajax({
-                url: autoPostGenerator.ajaxurl,
+                url: miapgAdmin.ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'validate_api_key',
-                    nonce: autoPostGenerator.nonce,
+                    nonce: miapgAdmin.nonce,
                     api_key: apiKey,
                     provider: $input.attr('name').replace('_api_key', '')
                 },
@@ -530,7 +530,7 @@ jQuery(document).ready(function($) {
         
         var data = {
             action: 'bulk_ideas_action',
-            nonce: autoPostGenerator.nonce,
+            nonce: miapgAdmin.nonce,
             bulk_action: action,
             idea_ids: ideaIds
         };
@@ -543,7 +543,7 @@ jQuery(document).ready(function($) {
         $('#doaction').prop('disabled', true).val('Processing...');
         
         $.ajax({
-            url: autoPostGenerator.ajaxurl,
+            url: miapgAdmin.ajaxurl,
             type: 'POST',
             data: data,
             success: function(response) {
@@ -650,11 +650,11 @@ window.AutoPostGenerator = {
     
     validateApiKey: function(apiKey, provider) {
         return jQuery.ajax({
-            url: autoPostGenerator.ajaxurl,
+            url: miapgAdmin.ajaxurl,
             type: 'POST',
             data: {
                 action: 'validate_api_key',
-                nonce: autoPostGenerator.nonce,
+                nonce: miapgAdmin.nonce,
                 api_key: apiKey,
                 provider: provider
             }

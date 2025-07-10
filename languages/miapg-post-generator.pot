@@ -1,9 +1,9 @@
-# Auto Post Generator - Language Template
+# MaestrIA post generator - Language Template
 # Copyright (C) 2024 konstantinWDK
-# This file is distributed under the same license as the Auto Post Generator plugin.
+# This file is distributed under the same license as the MaestrIA post generator plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Auto Post Generator 3.1\n"
+"Project-Id-Version: MaestrIA post generator 3.1\n"
 "Report-Msgid-Bugs-To: https://webdesignerk.com/support\n"
 "POT-Creation-Date: 2024-01-01 00:00:00+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -14,9 +14,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: WordPress\n"
-"X-Domain: auto-post-generator\n"
+"X-Domain: miapg-post-generator\n"
 
-msgid "Auto Post Generator"
+msgid "MaestrIA post generator"
 msgstr ""
 
 msgid "Settings"

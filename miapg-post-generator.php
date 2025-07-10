@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: Auto Post Generator
+ * Plugin Name: MaestrIA post generator
  * Plugin URI: https://webdesignerk.com
  * Description: Advanced AI-powered content generator with idea management system, article-based generation, category selection, and optimized HTML output for WordPress.
  * Version: 3.1
  * Author: konstantinWDK
  * Author URI: https://webdesignerk.com
- * Text Domain: auto-post-generator
+ * Text Domain: miapg-post-generator
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.4
@@ -22,16 +22,16 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('AUTO_POST_GENERATOR_VERSION', '3.1');
-define('AUTO_POST_GENERATOR_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('AUTO_POST_GENERATOR_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('AUTO_POST_GENERATOR_PLUGIN_FILE', __FILE__);
-define('AUTO_POST_GENERATOR_TEXT_DOMAIN', 'auto-post-generator');
+define('MIAPG_VERSION', '3.1');
+define('MIAPG_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('MIAPG_PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('MIAPG_PLUGIN_FILE', __FILE__);
+define('MIAPG_TEXT_DOMAIN', 'miapg-post-generator');
 
 /**
  * Main plugin class
  */
-class Auto_Post_Generator {
+class Miapg_Main {
     
     /**
      * Plugin instance
@@ -65,7 +65,7 @@ class Auto_Post_Generator {
         // Activation and deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
-        register_uninstall_hook(__FILE__, array('Auto_Post_Generator', 'uninstall'));
+        register_uninstall_hook(__FILE__, array('Miapg_Main', 'uninstall'));
     }
     
     /**
@@ -73,7 +73,7 @@ class Auto_Post_Generator {
      */
     public function load_textdomain() {
         load_plugin_textdomain(
-            AUTO_POST_GENERATOR_TEXT_DOMAIN,
+            MIAPG_TEXT_DOMAIN,
             false,
             dirname(plugin_basename(__FILE__)) . '/languages/'
         );
@@ -95,18 +95,18 @@ class Auto_Post_Generator {
      */
     private function load_dependencies() {
         // Core includes
-        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-post-generator.php';
-        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-ideas-generator.php';
-        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-post-ideas-cpt.php';
-        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-scheduler.php';
-        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-settings.php';
-        require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'includes/class-translator.php';
+        require_once MIAPG_PLUGIN_PATH . 'includes/class-post-generator.php';
+        require_once MIAPG_PLUGIN_PATH . 'includes/class-ideas-generator.php';
+        require_once MIAPG_PLUGIN_PATH . 'includes/class-post-ideas-cpt.php';
+        require_once MIAPG_PLUGIN_PATH . 'includes/class-scheduler.php';
+        require_once MIAPG_PLUGIN_PATH . 'includes/class-settings.php';
+        require_once MIAPG_PLUGIN_PATH . 'includes/class-translator.php';
         
         // Admin includes
         if (is_admin()) {
-            require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'admin/class-admin.php';
-            require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'admin/class-admin-pages.php';
-            require_once AUTO_POST_GENERATOR_PLUGIN_PATH . 'admin/class-admin-ajax.php';
+            require_once MIAPG_PLUGIN_PATH . 'admin/class-admin.php';
+            require_once MIAPG_PLUGIN_PATH . 'admin/class-admin-pages.php';
+            require_once MIAPG_PLUGIN_PATH . 'admin/class-admin-ajax.php';
         }
     }
     
@@ -115,15 +115,15 @@ class Auto_Post_Generator {
      */
     private function init_components() {
         // Initialize core components
-        Auto_Post_Generator_Post_Ideas_CPT::get_instance();
-        Auto_Post_Generator_Settings::get_instance();
-        Auto_Post_Generator_Scheduler::get_instance();
-        Auto_Post_Generator_Translator::get_instance();
+        Miapg_Post_Ideas_CPT::get_instance();
+        Miapg_Settings::get_instance();
+        Miapg_Scheduler::get_instance();
+        Miapg_Translator::get_instance();
         
         // Initialize admin components
         if (is_admin()) {
-            Auto_Post_Generator_Admin::get_instance();
-            Auto_Post_Generator_Admin_Ajax::get_instance();
+            Miapg_Admin::get_instance();
+            Miapg_Admin_Ajax::get_instance();
         }
     }
     
@@ -146,16 +146,16 @@ class Auto_Post_Generator {
         $this->set_default_options();
         
         // Register custom post types
-        if (class_exists('Auto_Post_Generator_Post_Ideas_CPT')) {
-            Auto_Post_Generator_Post_Ideas_CPT::register_post_type_static();
+        if (class_exists('Miapg_Post_Ideas_CPT')) {
+            Miapg_Post_Ideas_CPT::register_post_type_static();
         }
         
         // Flush rewrite rules
         flush_rewrite_rules();
         
         // Schedule cron events
-        if (class_exists('Auto_Post_Generator_Scheduler')) {
-            Auto_Post_Generator_Scheduler::schedule_events();
+        if (class_exists('Miapg_Scheduler')) {
+            Miapg_Scheduler::schedule_events();
         }
     }
     
@@ -167,8 +167,8 @@ class Auto_Post_Generator {
         $this->load_dependencies();
         
         // Clear scheduled events
-        if (class_exists('Auto_Post_Generator_Scheduler')) {
-            Auto_Post_Generator_Scheduler::clear_scheduled_events();
+        if (class_exists('Miapg_Scheduler')) {
+            Miapg_Scheduler::clear_scheduled_events();
         }
         
         // Flush rewrite rules
@@ -224,25 +224,25 @@ class Auto_Post_Generator {
      */
     private function set_default_options() {
         $default_options = array(
-            'ai_provider' => 'openai',
-            'writing_style' => 'informativo',
-            'target_audience' => 'general',
-            'tone' => 'profesional',
-            'auto_post_word_count' => 500,
-            'include_faq' => 'yes',
-            'include_lists' => 'yes',
-            'seo_focus' => 'medium',
-            'title_max_length' => 60,
-            'ai_temperature' => 0.7,
-            'ai_max_tokens' => 2000,
-            'ai_top_p' => 1.0,
-            'ai_frequency_penalty' => 0.0,
-            'ai_presence_penalty' => 0.0,
-            'auto_scheduling_enabled' => 'no',
-            'posting_frequency' => 'weekly',
-            'posting_time' => '09:00',
-            'posting_day' => 'monday',
-            'auto_delete_used_ideas' => 'no',
+            'miapg_ai_provider' => 'openai',
+            'miapg_writing_style' => 'informativo',
+            'miapg_target_audience' => 'general',
+            'miapg_tone' => 'profesional',
+            'miapg_post_word_count' => 500,
+            'miapg_include_faq' => 'yes',
+            'miapg_include_lists' => 'yes',
+            'miapg_seo_focus' => 'medium',
+            'miapg_title_max_length' => 60,
+            'miapg_ai_temperature' => 0.7,
+            'miapg_ai_max_tokens' => 2000,
+            'miapg_ai_top_p' => 1.0,
+            'miapg_ai_frequency_penalty' => 0.0,
+            'miapg_ai_presence_penalty' => 0.0,
+            'miapg_scheduling_enabled' => 'no',
+            'miapg_posting_frequency' => 'weekly',
+            'miapg_posting_time' => '09:00',
+            'miapg_posting_day' => 'monday',
+            'miapg_delete_used_ideas' => 'no',
         );
         
         foreach ($default_options as $option => $value) {
@@ -257,35 +257,35 @@ class Auto_Post_Generator {
      */
     private static function remove_options() {
         $options = array(
-            'ai_provider',
-            'openai_api_key',
-            'deepseek_api_key',
-            'openai_model',
-            'deepseek_model',
-            'writing_style',
-            'target_audience',
-            'tone',
-            'auto_post_prompt',
-            'auto_post_category',
-            'auto_post_tags',
-            'auto_post_status',
-            'auto_post_word_count',
-            'include_faq',
-            'include_lists',
-            'seo_focus',
-            'title_max_length',
-            'custom_instructions',
-            'ai_temperature',
-            'ai_max_tokens',
-            'ai_top_p',
-            'ai_frequency_penalty',
-            'ai_presence_penalty',
-            'auto_scheduling_enabled',
-            'posting_frequency',
-            'posting_time',
-            'posting_day',
-            'auto_topics_list',
-            'auto_delete_used_ideas',
+            'miapg_ai_provider',
+            'miapg_openai_api_key',
+            'miapg_deepseek_api_key',
+            'miapg_openai_model',
+            'miapg_deepseek_model',
+            'miapg_writing_style',
+            'miapg_target_audience',
+            'miapg_tone',
+            'miapg_post_prompt',
+            'miapg_post_category',
+            'miapg_post_tags',
+            'miapg_post_status',
+            'miapg_post_word_count',
+            'miapg_include_faq',
+            'miapg_include_lists',
+            'miapg_seo_focus',
+            'miapg_title_max_length',
+            'miapg_custom_instructions',
+            'miapg_ai_temperature',
+            'miapg_ai_max_tokens',
+            'miapg_ai_top_p',
+            'miapg_ai_frequency_penalty',
+            'miapg_ai_presence_penalty',
+            'miapg_scheduling_enabled',
+            'miapg_posting_frequency',
+            'miapg_posting_time',
+            'miapg_posting_day',
+            'miapg_topics_list',
+            'miapg_delete_used_ideas',
         );
         
         foreach ($options as $option) {
@@ -300,7 +300,7 @@ class Auto_Post_Generator {
         global $wpdb;
         
         // Delete all post ideas
-        $wpdb->query("DELETE FROM {$wpdb->posts} WHERE post_type = 'post_idea'");
+        $wpdb->query("DELETE FROM {$wpdb->posts} WHERE post_type = 'miapg_post_idea'");
         
         // Delete related meta data
         $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id NOT IN (SELECT id FROM {$wpdb->posts})");
@@ -315,4 +315,4 @@ class Auto_Post_Generator {
 }
 
 // Initialize plugin
-Auto_Post_Generator::get_instance();
+Miapg_Main::get_instance();
