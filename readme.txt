@@ -1,13 +1,15 @@
 === MaestrIA post generator ===
 Contributors: konstantinWDK
 Donate link: https://webdesignerk.com/donate
-Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO, generador contenido, automatización blog, IA, programación, ideas posts
+Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.8
 Stable tag: 3.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+Advanced AI-powered content generator with idea management system and optimized HTML output for WordPress.
 
 == Descripción ==
 

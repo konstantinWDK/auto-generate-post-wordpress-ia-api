@@ -37,10 +37,11 @@ class Miapg_Admin_Pages {
      */
     public function render_main_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', MIAPG_TEXT_DOMAIN));
+            wp_die(esc_html(__('You do not have sufficient permissions to access this page.', 'miapg-post-generator')));
         }
         
-        // Check if settings were updated
+        // Check if settings were updated (WordPress admin standard pattern)
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (isset($_GET['settings-updated'])) {
             add_settings_error('miapg_messages', 'miapg_message', miapg_translate('Settings saved'), 'updated');
         }
@@ -48,8 +49,9 @@ class Miapg_Admin_Pages {
         // Show error/update messages
         settings_errors('miapg_messages');
         
-        // Get active tab
-        $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
+        // Get active tab (WordPress admin standard pattern)
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
         
         // Handle form submissions
         $this->handle_form_submissions($active_tab);
@@ -113,142 +115,122 @@ class Miapg_Admin_Pages {
      */
     private function handle_form_submissions($active_tab) {
         // Handle idea generation
-        if (isset($_POST['generate_ideas']) && wp_verify_nonce($_POST['generate_ideas_nonce'], 'generate_ideas')) {
-            $this->handle_generate_ideas();
+        if (isset($_POST['generate_ideas']) && isset($_POST['generate_ideas_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['generate_ideas_nonce'])), 'generate_ideas')) {
+            // Form data is safe to access after nonce verification
+            $main_topic = isset($_POST['main_topic']) ? sanitize_text_field(wp_unslash($_POST['main_topic'])) : '';
+            $ideas_count = isset($_POST['num_ideas']) ? absint($_POST['num_ideas']) : 5;
+            $content_type = isset($_POST['content_type']) ? sanitize_text_field(wp_unslash($_POST['content_type'])) : 'general';
+            
+            if ($main_topic) {
+                $result = Miapg_Ideas_Generator::generate_post_ideas($main_topic, $ideas_count, $content_type);
+                if ($result) {
+                    echo '<div class="notice notice-success"><p>' . wp_kses_post($result) . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error generating ideas. Please check your API configuration.')) . '</p></div>';
+                }
+            } else {
+                echo '<div class="notice notice-warning"><p>' . esc_html(miapg_translate('Please enter a main topic.')) . '</p></div>';
+            }
         }
         
         // Handle article-based idea generation
-        if (isset($_POST['generate_ideas_from_article']) && wp_verify_nonce($_POST['generate_ideas_from_article_nonce'], 'generate_ideas_from_article')) {
-            $this->handle_generate_ideas_from_article();
+        if (isset($_POST['generate_ideas_from_article']) && isset($_POST['generate_ideas_from_article_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['generate_ideas_from_article_nonce'])), 'generate_ideas_from_article')) {
+            // Form data is safe to access after nonce verification
+            $reference_article = isset($_POST['reference_article']) ? sanitize_textarea_field(wp_unslash($_POST['reference_article'])) : '';
+            $ideas_count = isset($_POST['num_ideas_article']) ? absint($_POST['num_ideas_article']) : 5;
+            $approach = isset($_POST['generation_type']) ? sanitize_text_field(wp_unslash($_POST['generation_type'])) : 'related';
+            
+            if ($reference_article) {
+                $result = Miapg_Ideas_Generator::generate_ideas_from_article($reference_article, $ideas_count, $approach);
+                if ($result) {
+                    echo '<div class="notice notice-success"><p>' . wp_kses_post($result) . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error generating ideas from article. Please check your API configuration.')) . '</p></div>';
+                }
+            } else {
+                echo '<div class="notice notice-warning"><p>' . esc_html(miapg_translate('Please enter reference article content.')) . '</p></div>';
+            }
         }
         
         // Handle post creation
-        if (isset($_POST['create_now']) && wp_verify_nonce($_POST['create_post_nonce'], 'create_post_now')) {
-            $this->handle_create_post();
+        if (isset($_POST['create_now']) && isset($_POST['create_post_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['create_post_nonce'])), 'create_post_now')) {
+            // Form data is safe to access after nonce verification
+            // Handle idea-based creation
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $idea_id = isset($_GET['idea_id']) ? absint(wp_unslash($_GET['idea_id'])) : 0;
+            $idea_post = null;
+            $idea_keyword = '';
+            
+            if ($idea_id) {
+                $idea_post = get_post($idea_id);
+                if ($idea_post && $idea_post->post_type === 'miapg_post_idea') {
+                    $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
+                }
+            }
+            
+            // Get form data (nonce already verified above)
+            $prompt = !empty($_POST['custom_prompt']) ? sanitize_textarea_field(wp_unslash($_POST['custom_prompt'])) : Miapg_Settings::get_setting('auto_post_prompt', 'Write a post about a relevant topic.');
+            $category_id = !empty($_POST['category_custom']) ? absint(wp_unslash($_POST['category_custom'])) : Miapg_Settings::get_setting('auto_post_category', 1);
+            $tags = explode(',', Miapg_Settings::get_setting('auto_post_tags', ''));
+            $post_status = !empty($_POST['post_status_custom']) ? sanitize_text_field(wp_unslash($_POST['post_status_custom'])) : Miapg_Settings::get_setting('auto_post_status', 'publish');
+            $word_count = Miapg_Settings::get_setting('auto_post_word_count', '500');
+            $post_date = isset($_POST['post_date']) ? sanitize_text_field(wp_unslash($_POST['post_date'])) : current_time('mysql');
+            $ai_provider = !empty($_POST['ai_provider_custom']) ? sanitize_text_field(wp_unslash($_POST['ai_provider_custom'])) : Miapg_Settings::get_setting('ai_provider', 'openai');
+            $keyword = isset($_POST['keyword']) ? sanitize_text_field(wp_unslash($_POST['keyword'])) : '';
+            $source_article = isset($_POST['source_article']) ? sanitize_textarea_field(wp_unslash($_POST['source_article'])) : '';
+            
+            // If generating from idea, use idea's title and keyword
+            if ($idea_id && $idea_post) {
+                $prompt = $idea_post->post_title;
+                if (!$keyword && $idea_keyword) {
+                    $keyword = $idea_keyword;
+                }
+            }
+            
+            // Generate post
+            $message = Miapg_Post_Generator::generate_and_publish_post(
+                $prompt,
+                $category_id,
+                $tags,
+                $post_status,
+                $post_date,
+                $word_count,
+                $ai_provider,
+                array(),
+                $keyword,
+                $source_article,
+                ($idea_id && $idea_post) // Pass true if generating from idea
+            );
+            
+            echo '<div class="notice notice-info"><p>' . esc_html($message) . '</p></div>';
+            
+            // Show option to delete used idea
+            if ($idea_id && $idea_post) {
+                echo '<div class="notice notice-warning">';
+                echo '<p>' . esc_html(miapg_translate('Post generated from idea. '));
+                $delete_url = wp_nonce_url(admin_url('admin.php?page=miapg-post-generator&tab=create&delete_idea=' . $idea_id), 'delete_idea_' . $idea_id);
+                echo '<a href="' . esc_url($delete_url) . '" onclick="return confirm(\'' . esc_js(miapg_translate('Do you want to delete this idea since it has been used to generate the post?')) . '\')" class="button button-small">' . esc_html(miapg_translate('Delete Used Idea')) . '</a>';
+                echo '</p>';
+                echo '</div>';
+            }
         }
         
         // Handle idea deletion
-        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['idea_id']) && wp_verify_nonce($_GET['_wpnonce'], 'delete_idea_' . $_GET['idea_id'])) {
-            $this->handle_delete_idea();
-        }
-    }
-    
-    /**
-     * Handle idea generation
-     */
-    private function handle_generate_ideas() {
-        $main_topic = sanitize_text_field($_POST['main_topic']);
-        $ideas_count = absint($_POST['num_ideas']);
-        $content_type = sanitize_text_field($_POST['content_type']);
-        
-        if ($main_topic) {
-            $result = Miapg_Ideas_Generator::generate_post_ideas($main_topic, $ideas_count, $content_type);
-            if ($result) {
-                echo '<div class="notice notice-success"><p>' . $result . '</p></div>';
+        if (isset($_GET['action']) && sanitize_text_field(wp_unslash($_GET['action'])) === 'delete' && isset($_GET['idea_id']) && isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'delete_idea_' . sanitize_text_field(wp_unslash($_GET['idea_id'])))) {
+            // URL parameters are safe to access after nonce verification
+            $delete_id = isset($_GET['idea_id']) ? absint(wp_unslash($_GET['idea_id'])) : 0;
+            
+            if (wp_delete_post($delete_id, true)) {
+                echo '<div class="notice notice-success"><p>' . esc_html(miapg_translate('Idea deleted successfully.')) . '</p></div>';
+                echo '<script>window.history.replaceState({}, document.title, "' . esc_url(admin_url('admin.php?page=miapg-post-generator&tab=ideas')) . '");</script>';
             } else {
-                echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error generating ideas. Please check your API configuration.')) . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error deleting idea.')) . '</p></div>';
             }
-        } else {
-            echo '<div class="notice notice-warning"><p>' . esc_html(miapg_translate('Please enter a main topic.')) . '</p></div>';
         }
     }
     
-    /**
-     * Handle article-based idea generation
-     */
-    private function handle_generate_ideas_from_article() {
-        $reference_article = sanitize_textarea_field($_POST['reference_article']);
-        $ideas_count = absint($_POST['num_ideas_article']);
-        $approach = sanitize_text_field($_POST['generation_type']);
-        
-        if ($reference_article) {
-            $result = Miapg_Ideas_Generator::generate_ideas_from_article($reference_article, $ideas_count, $approach);
-            if ($result) {
-                echo '<div class="notice notice-success"><p>' . $result . '</p></div>';
-            } else {
-                echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error generating ideas from article. Please check your API configuration.')) . '</p></div>';
-            }
-        } else {
-            echo '<div class="notice notice-warning"><p>' . esc_html(miapg_translate('Please enter a reference article.')) . '</p></div>';
-        }
-    }
     
-    /**
-     * Handle post creation
-     */
-    private function handle_create_post() {
-        // Handle idea-based creation
-        $idea_id = isset($_GET['idea_id']) ? absint($_GET['idea_id']) : 0;
-        $idea_post = null;
-        $idea_keyword = '';
-        
-        if ($idea_id) {
-            $idea_post = get_post($idea_id);
-            if ($idea_post && $idea_post->post_type === 'miapg_post_idea') {
-                $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
-            }
-        }
-        
-        // Get form data
-        $prompt = !empty($_POST['custom_prompt']) ? sanitize_textarea_field($_POST['custom_prompt']) : Miapg_Settings::get_setting('auto_post_prompt', 'Write a post about a relevant topic.');
-        $category_id = !empty($_POST['category_custom']) ? absint($_POST['category_custom']) : Miapg_Settings::get_setting('auto_post_category', 1);
-        $tags = explode(',', Miapg_Settings::get_setting('auto_post_tags', ''));
-        $post_status = !empty($_POST['post_status_custom']) ? sanitize_text_field($_POST['post_status_custom']) : Miapg_Settings::get_setting('auto_post_status', 'publish');
-        $word_count = Miapg_Settings::get_setting('auto_post_word_count', '500');
-        $post_date = isset($_POST['post_date']) ? sanitize_text_field($_POST['post_date']) : current_time('mysql');
-        $ai_provider = !empty($_POST['ai_provider_custom']) ? sanitize_text_field($_POST['ai_provider_custom']) : Miapg_Settings::get_setting('ai_provider', 'openai');
-        $keyword = isset($_POST['keyword']) ? sanitize_text_field($_POST['keyword']) : '';
-        $source_article = isset($_POST['source_article']) ? sanitize_textarea_field($_POST['source_article']) : '';
-        
-        // If generating from idea, use idea's title and keyword
-        if ($idea_id && $idea_post) {
-            $prompt = $idea_post->post_title;
-            if (!$keyword && $idea_keyword) {
-                $keyword = $idea_keyword;
-            }
-        }
-        
-        // Generate post
-        $message = Miapg_Post_Generator::generate_and_publish_post(
-            $prompt,
-            $category_id,
-            $tags,
-            $post_status,
-            $post_date,
-            $word_count,
-            $ai_provider,
-            array(),
-            $keyword,
-            $source_article,
-            ($idea_id && $idea_post) // Pass true if generating from idea
-        );
-        
-        echo '<div class="notice notice-info"><p>' . esc_html($message) . '</p></div>';
-        
-        // Show option to delete used idea
-        if ($idea_id && $idea_post) {
-            echo '<div class="notice notice-warning">';
-            echo '<p>' . esc_html(miapg_translate('Post generated from idea. '));
-            $delete_url = wp_nonce_url(admin_url('admin.php?page=miapg-post-generator&tab=create&delete_idea=' . $idea_id), 'delete_idea_' . $idea_id);
-            echo '<a href="' . $delete_url . '" onclick="return confirm(\'' . esc_js(miapg_translate('Do you want to delete this idea since it has been used to generate the post?')) . '\')" class="button button-small">' . esc_html(miapg_translate('Delete Used Idea')) . '</a>';
-            echo '</p>';
-            echo '</div>';
-        }
-    }
     
-    /**
-     * Handle idea deletion
-     */
-    private function handle_delete_idea() {
-        $delete_id = absint($_GET['idea_id']);
-        
-        if (wp_delete_post($delete_id, true)) {
-            echo '<div class="notice notice-success"><p>' . esc_html(miapg_translate('Idea deleted successfully.')) . '</p></div>';
-            echo '<script>window.history.replaceState({}, document.title, "' . admin_url('admin.php?page=miapg-post-generator&tab=ideas') . '");</script>';
-        } else {
-            echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error deleting idea.')) . '</p></div>';
-        }
-    }
     
     /**
      * Render general tab
@@ -256,6 +238,9 @@ class Miapg_Admin_Pages {
     private function render_general_tab() {
         ?>
         <form method="post" action="options.php">
+            <?php wp_nonce_field('miapg_general_settings_action', 'miapg_general_nonce'); ?>
+            <input type="hidden" name="option_page" value="miapg_settings_group" />
+            <input type="hidden" name="action" value="update" />
             <?php
             settings_fields('miapg_settings_group');
             do_settings_sections('miapg_settings_group');
@@ -344,6 +329,9 @@ class Miapg_Admin_Pages {
     private function render_ai_tab() {
         ?>
         <form method="post" action="options.php">
+            <?php wp_nonce_field('miapg_ai_settings_action', 'miapg_ai_nonce'); ?>
+            <input type="hidden" name="option_page" value="miapg_ai_settings_group" />
+            <input type="hidden" name="action" value="update" />
             <?php
             settings_fields('miapg_ai_settings_group');
             do_settings_sections('miapg_ai_settings_group');

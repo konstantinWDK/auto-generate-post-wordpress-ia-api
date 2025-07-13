@@ -10,10 +10,13 @@ if (!defined('ABSPATH')) {
 ?>
 
 <form method="post" action="options.php">
+    <?php wp_nonce_field('miapg_scheduling_settings_action', 'miapg_scheduling_nonce'); ?>
+    <input type="hidden" name="option_page" value="miapg_scheduling_settings_group" />
+    <input type="hidden" name="action" value="update" />
     <?php settings_fields('miapg_scheduling_settings_group'); ?>
     <table class="form-table">
         <tr valign="top">
-            <th scope="row"><?php _e('Auto Scheduling', MIAPG_TEXT_DOMAIN); ?></th>
+            <th scope="row"><?php esc_html_e('Auto Scheduling', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="auto_scheduling_enabled">
                     <option value="no" <?php selected(Miapg_Settings::get_setting('auto_scheduling_enabled'), 'no'); ?>>No</option>
@@ -22,7 +25,7 @@ if (!defined('ABSPATH')) {
             </td>
         </tr>
         <tr valign="top">
-            <th scope="row"><?php _e('Posting Frequency', MIAPG_TEXT_DOMAIN); ?></th>
+            <th scope="row"><?php esc_html_e('Posting Frequency', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="posting_frequency">
                     <option value="daily" <?php selected(Miapg_Settings::get_setting('posting_frequency'), 'daily'); ?>>Daily</option>
@@ -33,13 +36,13 @@ if (!defined('ABSPATH')) {
             </td>
         </tr>
         <tr valign="top">
-            <th scope="row"><?php _e('Posting Time', MIAPG_TEXT_DOMAIN); ?></th>
+            <th scope="row"><?php esc_html_e('Posting Time', 'miapg-post-generator'); ?></th>
             <td>
                 <input type="time" name="posting_time" value="<?php echo esc_attr(Miapg_Settings::get_setting('posting_time', '09:00')); ?>" />
             </td>
         </tr>
         <tr valign="top">
-            <th scope="row"><?php _e('Posting Day', MIAPG_TEXT_DOMAIN); ?></th>
+            <th scope="row"><?php esc_html_e('Posting Day', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="posting_day">
                     <option value="monday" <?php selected(Miapg_Settings::get_setting('posting_day'), 'monday'); ?>>Monday</option>
@@ -53,20 +56,20 @@ if (!defined('ABSPATH')) {
             </td>
         </tr>
         <tr valign="top">
-            <th scope="row"><?php _e('Topics List', MIAPG_TEXT_DOMAIN); ?></th>
+            <th scope="row"><?php esc_html_e('Topics List', 'miapg-post-generator'); ?></th>
             <td>
                 <textarea name="auto_topics_list" rows="8" cols="50"><?php echo esc_textarea(Miapg_Settings::get_setting('auto_topics_list')); ?></textarea>
-                <p class="description"><?php _e('Enter topics one per line for automatic post generation', MIAPG_TEXT_DOMAIN); ?></p>
+                <p class="description"><?php esc_html_e('Enter topics one per line for automatic post generation', 'miapg-post-generator'); ?></p>
             </td>
         </tr>
         <tr valign="top">
-            <th scope="row"><?php _e('Auto Delete Used Ideas', MIAPG_TEXT_DOMAIN); ?></th>
+            <th scope="row"><?php esc_html_e('Auto Delete Used Ideas', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="auto_delete_used_ideas">
                     <option value="no" <?php selected(Miapg_Settings::get_setting('auto_delete_used_ideas'), 'no'); ?>>No</option>
                     <option value="yes" <?php selected(Miapg_Settings::get_setting('auto_delete_used_ideas'), 'yes'); ?>>Yes</option>
                 </select>
-                <p class="description"><?php _e('Delete ideas after they are used to generate posts', MIAPG_TEXT_DOMAIN); ?></p>
+                <p class="description"><?php esc_html_e('Delete ideas after they are used to generate posts', 'miapg-post-generator'); ?></p>
             </td>
         </tr>
     </table>

@@ -53,38 +53,38 @@ class Miapg_Post_Ideas_CPT {
      */
     public function register_post_type() {
         $labels = array(
-            'name' => __('Post Ideas', MIAPG_TEXT_DOMAIN),
-            'singular_name' => __('Post Idea', MIAPG_TEXT_DOMAIN),
-            'menu_name' => __('Post Ideas', MIAPG_TEXT_DOMAIN),
-            'name_admin_bar' => __('Post Idea', MIAPG_TEXT_DOMAIN),
-            'archives' => __('Ideas Archive', MIAPG_TEXT_DOMAIN),
-            'attributes' => __('Idea Attributes', MIAPG_TEXT_DOMAIN),
-            'parent_item_colon' => __('Parent Idea:', MIAPG_TEXT_DOMAIN),
-            'all_items' => __('All Ideas', MIAPG_TEXT_DOMAIN),
-            'add_new_item' => __('Add New Idea', MIAPG_TEXT_DOMAIN),
-            'add_new' => __('Add New', MIAPG_TEXT_DOMAIN),
-            'new_item' => __('New Idea', MIAPG_TEXT_DOMAIN),
-            'edit_item' => __('Edit Idea', MIAPG_TEXT_DOMAIN),
-            'update_item' => __('Update Idea', MIAPG_TEXT_DOMAIN),
-            'view_item' => __('View Idea', MIAPG_TEXT_DOMAIN),
-            'view_items' => __('View Ideas', MIAPG_TEXT_DOMAIN),
-            'search_items' => __('Search Ideas', MIAPG_TEXT_DOMAIN),
-            'not_found' => __('No ideas found', MIAPG_TEXT_DOMAIN),
-            'not_found_in_trash' => __('No ideas found in trash', MIAPG_TEXT_DOMAIN),
-            'featured_image' => __('Featured Image', MIAPG_TEXT_DOMAIN),
-            'set_featured_image' => __('Set featured image', MIAPG_TEXT_DOMAIN),
-            'remove_featured_image' => __('Remove featured image', MIAPG_TEXT_DOMAIN),
-            'use_featured_image' => __('Use as featured image', MIAPG_TEXT_DOMAIN),
-            'insert_into_item' => __('Insert into idea', MIAPG_TEXT_DOMAIN),
-            'uploaded_to_this_item' => __('Uploaded to this idea', MIAPG_TEXT_DOMAIN),
-            'items_list' => __('Ideas list', MIAPG_TEXT_DOMAIN),
-            'items_list_navigation' => __('Ideas list navigation', MIAPG_TEXT_DOMAIN),
-            'filter_items_list' => __('Filter ideas list', MIAPG_TEXT_DOMAIN),
+            'name' => __('Post Ideas', 'miapg-post-generator'),
+            'singular_name' => __('Post Idea', 'miapg-post-generator'),
+            'menu_name' => __('Post Ideas', 'miapg-post-generator'),
+            'name_admin_bar' => __('Post Idea', 'miapg-post-generator'),
+            'archives' => __('Ideas Archive', 'miapg-post-generator'),
+            'attributes' => __('Idea Attributes', 'miapg-post-generator'),
+            'parent_item_colon' => __('Parent Idea:', 'miapg-post-generator'),
+            'all_items' => __('All Ideas', 'miapg-post-generator'),
+            'add_new_item' => __('Add New Idea', 'miapg-post-generator'),
+            'add_new' => __('Add New', 'miapg-post-generator'),
+            'new_item' => __('New Idea', 'miapg-post-generator'),
+            'edit_item' => __('Edit Idea', 'miapg-post-generator'),
+            'update_item' => __('Update Idea', 'miapg-post-generator'),
+            'view_item' => __('View Idea', 'miapg-post-generator'),
+            'view_items' => __('View Ideas', 'miapg-post-generator'),
+            'search_items' => __('Search Ideas', 'miapg-post-generator'),
+            'not_found' => __('No ideas found', 'miapg-post-generator'),
+            'not_found_in_trash' => __('No ideas found in trash', 'miapg-post-generator'),
+            'featured_image' => __('Featured Image', 'miapg-post-generator'),
+            'set_featured_image' => __('Set featured image', 'miapg-post-generator'),
+            'remove_featured_image' => __('Remove featured image', 'miapg-post-generator'),
+            'use_featured_image' => __('Use as featured image', 'miapg-post-generator'),
+            'insert_into_item' => __('Insert into idea', 'miapg-post-generator'),
+            'uploaded_to_this_item' => __('Uploaded to this idea', 'miapg-post-generator'),
+            'items_list' => __('Ideas list', 'miapg-post-generator'),
+            'items_list_navigation' => __('Ideas list navigation', 'miapg-post-generator'),
+            'filter_items_list' => __('Filter ideas list', 'miapg-post-generator'),
         );
         
         $args = array(
-            'label' => __('Post Ideas', MIAPG_TEXT_DOMAIN),
-            'description' => __('Generated ideas for posts', MIAPG_TEXT_DOMAIN),
+            'label' => __('Post Ideas', 'miapg-post-generator'),
+            'description' => __('Generated ideas for posts', 'miapg-post-generator'),
             'labels' => $labels,
             'supports' => array('title', 'editor', 'custom-fields'),
             'hierarchical' => false,
@@ -127,7 +127,7 @@ class Miapg_Post_Ideas_CPT {
     public function add_meta_boxes() {
         add_meta_box(
             'post_idea_details',
-            __('Idea Details', MIAPG_TEXT_DOMAIN),
+            __('Idea Details', 'miapg-post-generator'),
             array($this, 'details_meta_box_callback'),
             'miapg_post_idea',
             'normal',
@@ -136,7 +136,7 @@ class Miapg_Post_Ideas_CPT {
         
         add_meta_box(
             'post_idea_actions',
-            __('Actions', MIAPG_TEXT_DOMAIN),
+            __('Actions', 'miapg-post-generator'),
             array($this, 'actions_meta_box_callback'),
             'miapg_post_idea',
             'side',
@@ -159,27 +159,27 @@ class Miapg_Post_Ideas_CPT {
         ?>
         <table class="form-table">
             <tr>
-                <th><label for="post_idea_topic"><?php _e('Original Topic:', MIAPG_TEXT_DOMAIN); ?></label></th>
+                <th><label for="post_idea_topic"><?php esc_html_e('Original Topic:', 'miapg-post-generator'); ?></label></th>
                 <td><input type="text" id="post_idea_topic" name="post_idea_topic" value="<?php echo esc_attr($topic); ?>" style="width: 100%;" readonly /></td>
             </tr>
             <tr>
-                <th><label for="post_idea_keyword"><?php _e('Keyword:', MIAPG_TEXT_DOMAIN); ?></label></th>
+                <th><label for="post_idea_keyword"><?php esc_html_e('Keyword:', 'miapg-post-generator'); ?></label></th>
                 <td>
-                    <input type="text" id="post_idea_keyword" name="post_idea_keyword" value="<?php echo esc_attr($keyword); ?>" style="width: 100%;" placeholder="<?php _e('e.g. digital marketing, SEO, WordPress', MIAPG_TEXT_DOMAIN); ?>" />
-                    <p class="description"><?php _e('Main keyword to focus content on', MIAPG_TEXT_DOMAIN); ?></p>
+                    <input type="text" id="post_idea_keyword" name="post_idea_keyword" value="<?php echo esc_attr($keyword); ?>" style="width: 100%;" placeholder="<?php esc_attr_e('e.g. digital marketing, SEO, WordPress', 'miapg-post-generator'); ?>" />
+                    <p class="description"><?php esc_html_e('Main keyword to focus content on', 'miapg-post-generator'); ?></p>
                 </td>
             </tr>
             <tr>
-                <th><label for="post_idea_content_type"><?php _e('Content Type:', MIAPG_TEXT_DOMAIN); ?></label></th>
+                <th><label for="post_idea_content_type"><?php esc_html_e('Content Type:', 'miapg-post-generator'); ?></label></th>
                 <td><input type="text" id="post_idea_content_type" name="post_idea_content_type" value="<?php echo esc_attr($content_type); ?>" style="width: 100%;" readonly /></td>
             </tr>
             <tr>
-                <th><label for="post_idea_generated_date"><?php _e('Generated Date:', MIAPG_TEXT_DOMAIN); ?></label></th>
+                <th><label for="post_idea_generated_date"><?php esc_html_e('Generated Date:', 'miapg-post-generator'); ?></label></th>
                 <td><input type="text" id="post_idea_generated_date" name="post_idea_generated_date" value="<?php echo esc_attr($generated_date); ?>" style="width: 100%;" readonly /></td>
             </tr>
             <?php if ($source_article): ?>
             <tr>
-                <th><label for="post_idea_source_article"><?php _e('Source Article:', MIAPG_TEXT_DOMAIN); ?></label></th>
+                <th><label for="post_idea_source_article"><?php esc_html_e('Source Article:', 'miapg-post-generator'); ?></label></th>
                 <td><textarea id="post_idea_source_article" name="post_idea_source_article" rows="3" style="width: 100%;" readonly><?php echo esc_textarea($source_article); ?></textarea></td>
             </tr>
             <?php endif; ?>
@@ -193,10 +193,10 @@ class Miapg_Post_Ideas_CPT {
     public function actions_meta_box_callback($post) {
         ?>
         <div style="text-align: center; padding: 20px;">
-            <a href="<?php echo admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID); ?>" class="button button-primary button-large" style="width: 100%; margin-bottom: 10px;">
-                🚀 <?php _e('Generate Post with this Idea', MIAPG_TEXT_DOMAIN); ?>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID)); ?>" class="button button-primary button-large" style="width: 100%; margin-bottom: 10px;">
+                🚀 <?php esc_html_e('Generate Post with this Idea', 'miapg-post-generator'); ?>
             </a>
-            <p class="description"><?php _e('Create a complete post based on this idea', MIAPG_TEXT_DOMAIN); ?></p>
+            <p class="description"><?php esc_html_e('Create a complete post based on this idea', 'miapg-post-generator'); ?></p>
         </div>
         <?php
     }
@@ -205,7 +205,7 @@ class Miapg_Post_Ideas_CPT {
      * Save meta data
      */
     public function save_meta_data($post_id) {
-        if (!isset($_POST['post_idea_meta_box_nonce']) || !wp_verify_nonce($_POST['post_idea_meta_box_nonce'], 'post_idea_meta_box')) {
+        if (!isset($_POST['post_idea_meta_box_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['post_idea_meta_box_nonce'])), 'post_idea_meta_box')) {
             return;
         }
         
@@ -218,7 +218,7 @@ class Miapg_Post_Ideas_CPT {
         }
         
         if (isset($_POST['post_idea_keyword'])) {
-            update_post_meta($post_id, '_miapg_idea_keyword', sanitize_text_field($_POST['post_idea_keyword']));
+            update_post_meta($post_id, '_miapg_idea_keyword', sanitize_text_field(wp_unslash($_POST['post_idea_keyword'])));
         }
     }
     
@@ -228,12 +228,12 @@ class Miapg_Post_Ideas_CPT {
     public function custom_columns($columns) {
         $columns = array(
             'cb' => $columns['cb'],
-            'title' => __('Idea Title', MIAPG_TEXT_DOMAIN),
-            'topic' => __('Original Topic', MIAPG_TEXT_DOMAIN),
-            'keyword' => __('Keyword', MIAPG_TEXT_DOMAIN),
-            'content_type' => __('Content Type', MIAPG_TEXT_DOMAIN),
-            'generated_date' => __('Generated Date', MIAPG_TEXT_DOMAIN),
-            'actions' => __('Actions', MIAPG_TEXT_DOMAIN),
+            'title' => __('Idea Title', 'miapg-post-generator'),
+            'topic' => __('Original Topic', 'miapg-post-generator'),
+            'keyword' => __('Keyword', 'miapg-post-generator'),
+            'content_type' => __('Content Type', 'miapg-post-generator'),
+            'generated_date' => __('Generated Date', 'miapg-post-generator'),
+            'actions' => __('Actions', 'miapg-post-generator'),
         );
         return $columns;
     }
@@ -248,7 +248,7 @@ class Miapg_Post_Ideas_CPT {
                 break;
             case 'keyword':
                 $keyword = get_post_meta($post_id, '_miapg_idea_keyword', true);
-                echo $keyword ? esc_html($keyword) : '<span style="color: #999;">' . __('Not defined', MIAPG_TEXT_DOMAIN) . '</span>';
+                echo $keyword ? esc_html($keyword) : '<span style="color: #999;">' . esc_html__('Not defined', 'miapg-post-generator') . '</span>';
                 break;
             case 'content_type':
                 echo esc_html(get_post_meta($post_id, '_miapg_idea_content_type', true));
@@ -257,7 +257,7 @@ class Miapg_Post_Ideas_CPT {
                 echo esc_html(get_post_meta($post_id, '_miapg_idea_generated_date', true));
                 break;
             case 'actions':
-                echo '<a href="' . admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post_id) . '" class="button button-primary">' . __('Generate Post', MIAPG_TEXT_DOMAIN) . '</a>';
+                echo '<a href="' . esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post_id)) . '" class="button button-primary">' . esc_html__('Generate Post', 'miapg-post-generator') . '</a>';
                 break;
         }
     }
@@ -283,7 +283,7 @@ class Miapg_Post_Ideas_CPT {
             unset($actions['inline hide-if-no-js']);
             
             $generate_url = admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID);
-            $actions['generate_post'] = '<a href="' . $generate_url . '" title="' . __('Generate post based on this idea', MIAPG_TEXT_DOMAIN) . '">' . __('Generate Post', MIAPG_TEXT_DOMAIN) . '</a>';
+            $actions['generate_post'] = '<a href="' . $generate_url . '" title="' . __('Generate post based on this idea', 'miapg-post-generator') . '">' . __('Generate Post', 'miapg-post-generator') . '</a>';
         }
         return $actions;
     }
@@ -294,46 +294,50 @@ class Miapg_Post_Ideas_CPT {
     public function admin_filter() {
         $screen = get_current_screen();
         if ($screen && $screen->post_type === 'miapg_post_idea') {
-            $used_filter = isset($_GET['used_filter']) ? $_GET['used_filter'] : '';
-            $content_type_filter = isset($_GET['content_type_filter']) ? $_GET['content_type_filter'] : '';
+            // Admin list table filters - WordPress standard pattern
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $used_filter = isset($_GET['used_filter']) ? sanitize_text_field(wp_unslash($_GET['used_filter'])) : '';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $content_type_filter = isset($_GET['content_type_filter']) ? sanitize_text_field(wp_unslash($_GET['content_type_filter'])) : '';
             
             // Keyword filter
             echo '<select name="used_filter" id="used_filter">';
-            echo '<option value="">' . __('All ideas', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="with_keyword"' . selected($used_filter, 'with_keyword', false) . '>' . __('With keyword', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="without_keyword"' . selected($used_filter, 'without_keyword', false) . '>' . __('Without keyword', MIAPG_TEXT_DOMAIN) . '</option>';
+            echo '<option value="">' . esc_html__('All ideas', 'miapg-post-generator') . '</option>';
+            echo '<option value="with_keyword"' . selected($used_filter, 'with_keyword', false) . '>' . esc_html__('With keyword', 'miapg-post-generator') . '</option>';
+            echo '<option value="without_keyword"' . selected($used_filter, 'without_keyword', false) . '>' . esc_html__('Without keyword', 'miapg-post-generator') . '</option>';
             echo '</select>';
             
             // Content type filter
             $content_types = array(
-                'general' => __('General', MIAPG_TEXT_DOMAIN),
-                'tutorial' => __('Tutorial', MIAPG_TEXT_DOMAIN),
-                'list' => __('List', MIAPG_TEXT_DOMAIN),
-                'comparison' => __('Comparison', MIAPG_TEXT_DOMAIN),
-                'news' => __('News', MIAPG_TEXT_DOMAIN),
-                'related' => __('Related', MIAPG_TEXT_DOMAIN),
-                'expanded' => __('Expanded', MIAPG_TEXT_DOMAIN),
-                'alternative' => __('Alternative', MIAPG_TEXT_DOMAIN),
-                'practical' => __('Practical', MIAPG_TEXT_DOMAIN),
+                'general' => __('General', 'miapg-post-generator'),
+                'tutorial' => __('Tutorial', 'miapg-post-generator'),
+                'list' => __('List', 'miapg-post-generator'),
+                'comparison' => __('Comparison', 'miapg-post-generator'),
+                'news' => __('News', 'miapg-post-generator'),
+                'related' => __('Related', 'miapg-post-generator'),
+                'expanded' => __('Expanded', 'miapg-post-generator'),
+                'alternative' => __('Alternative', 'miapg-post-generator'),
+                'practical' => __('Practical', 'miapg-post-generator'),
             );
             
             echo '<select name="content_type_filter" id="content_type_filter">';
-            echo '<option value="">' . __('All content types', MIAPG_TEXT_DOMAIN) . '</option>';
+            echo '<option value="">' . esc_html__('All content types', 'miapg-post-generator') . '</option>';
             foreach ($content_types as $type => $label) {
                 echo '<option value="' . esc_attr($type) . '"' . selected($content_type_filter, $type, false) . '>' . esc_html($label) . '</option>';
             }
             echo '</select>';
             
             // Date range filter
-            $date_filter = isset($_GET['date_filter']) ? $_GET['date_filter'] : '';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $date_filter = isset($_GET['date_filter']) ? sanitize_text_field(wp_unslash($_GET['date_filter'])) : '';
             echo '<select name="date_filter" id="date_filter">';
-            echo '<option value="">' . __('All dates', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="today"' . selected($date_filter, 'today', false) . '>' . __('Today', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="yesterday"' . selected($date_filter, 'yesterday', false) . '>' . __('Yesterday', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="this_week"' . selected($date_filter, 'this_week', false) . '>' . __('This week', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="last_week"' . selected($date_filter, 'last_week', false) . '>' . __('Last week', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="this_month"' . selected($date_filter, 'this_month', false) . '>' . __('This month', MIAPG_TEXT_DOMAIN) . '</option>';
-            echo '<option value="last_month"' . selected($date_filter, 'last_month', false) . '>' . __('Last month', MIAPG_TEXT_DOMAIN) . '</option>';
+            echo '<option value="">' . esc_html__('All dates', 'miapg-post-generator') . '</option>';
+            echo '<option value="today"' . selected($date_filter, 'today', false) . '>' . esc_html__('Today', 'miapg-post-generator') . '</option>';
+            echo '<option value="yesterday"' . selected($date_filter, 'yesterday', false) . '>' . esc_html__('Yesterday', 'miapg-post-generator') . '</option>';
+            echo '<option value="this_week"' . selected($date_filter, 'this_week', false) . '>' . esc_html__('This week', 'miapg-post-generator') . '</option>';
+            echo '<option value="last_week"' . selected($date_filter, 'last_week', false) . '>' . esc_html__('Last week', 'miapg-post-generator') . '</option>';
+            echo '<option value="this_month"' . selected($date_filter, 'this_month', false) . '>' . esc_html__('This month', 'miapg-post-generator') . '</option>';
+            echo '<option value="last_month"' . selected($date_filter, 'last_month', false) . '>' . esc_html__('Last month', 'miapg-post-generator') . '</option>';
             echo '</select>';
         }
     }
@@ -344,19 +348,23 @@ class Miapg_Post_Ideas_CPT {
     public function filter_query($query) {
         global $pagenow;
         
-        if ($pagenow === 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'miapg_post_idea' && $query->is_main_query()) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ($pagenow === 'edit.php' && isset($_GET['post_type']) && sanitize_text_field(wp_unslash($_GET['post_type'])) === 'miapg_post_idea' && $query->is_main_query()) {
             $meta_query = array();
             $date_query = array();
             
             // Keyword filter
-            if (isset($_GET['used_filter']) && $_GET['used_filter'] !== '') {
-                if ($_GET['used_filter'] === 'with_keyword') {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if (isset($_GET['used_filter']) && sanitize_text_field(wp_unslash($_GET['used_filter'])) !== '') {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                if (sanitize_text_field(wp_unslash($_GET['used_filter'])) === 'with_keyword') {
                     $meta_query[] = array(
                         'key' => '_miapg_idea_keyword',
                         'value' => '',
                         'compare' => '!='
                     );
-                } elseif ($_GET['used_filter'] === 'without_keyword') {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                } elseif (sanitize_text_field(wp_unslash($_GET['used_filter'])) === 'without_keyword') {
                     $meta_query[] = array(
                         'relation' => 'OR',
                         array(
@@ -373,39 +381,43 @@ class Miapg_Post_Ideas_CPT {
             }
             
             // Content type filter
-            if (isset($_GET['content_type_filter']) && $_GET['content_type_filter'] !== '') {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if (isset($_GET['content_type_filter']) && sanitize_text_field(wp_unslash($_GET['content_type_filter'])) !== '') {
                 $meta_query[] = array(
                     'key' => '_miapg_idea_content_type',
-                    'value' => sanitize_text_field($_GET['content_type_filter']),
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    'value' => sanitize_text_field(wp_unslash($_GET['content_type_filter'])),
                     'compare' => '='
                 );
             }
             
             // Date filter
-            if (isset($_GET['date_filter']) && $_GET['date_filter'] !== '') {
-                $date_filter = $_GET['date_filter'];
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            if (isset($_GET['date_filter']) && sanitize_text_field(wp_unslash($_GET['date_filter'])) !== '') {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                $date_filter = sanitize_text_field(wp_unslash($_GET['date_filter']));
                 $current_time = current_time('timestamp');
                 
                 switch ($date_filter) {
                     case 'today':
                         $date_query[] = array(
-                            'after' => date('Y-m-d 00:00:00', $current_time),
-                            'before' => date('Y-m-d 23:59:59', $current_time),
+                            'after' => gmdate('Y-m-d 00:00:00', $current_time),
+                            'before' => gmdate('Y-m-d 23:59:59', $current_time),
                             'inclusive' => true,
                         );
                         break;
                     case 'yesterday':
                         $yesterday = $current_time - DAY_IN_SECONDS;
                         $date_query[] = array(
-                            'after' => date('Y-m-d 00:00:00', $yesterday),
-                            'before' => date('Y-m-d 23:59:59', $yesterday),
+                            'after' => gmdate('Y-m-d 00:00:00', $yesterday),
+                            'before' => gmdate('Y-m-d 23:59:59', $yesterday),
                             'inclusive' => true,
                         );
                         break;
                     case 'this_week':
                         $start_of_week = strtotime('last sunday', $current_time);
                         $date_query[] = array(
-                            'after' => date('Y-m-d 00:00:00', $start_of_week),
+                            'after' => gmdate('Y-m-d 00:00:00', $start_of_week),
                             'inclusive' => true,
                         );
                         break;
@@ -413,14 +425,14 @@ class Miapg_Post_Ideas_CPT {
                         $start_of_last_week = strtotime('last sunday', $current_time) - WEEK_IN_SECONDS;
                         $end_of_last_week = $start_of_last_week + WEEK_IN_SECONDS;
                         $date_query[] = array(
-                            'after' => date('Y-m-d 00:00:00', $start_of_last_week),
-                            'before' => date('Y-m-d 23:59:59', $end_of_last_week),
+                            'after' => gmdate('Y-m-d 00:00:00', $start_of_last_week),
+                            'before' => gmdate('Y-m-d 23:59:59', $end_of_last_week),
                             'inclusive' => true,
                         );
                         break;
                     case 'this_month':
                         $date_query[] = array(
-                            'after' => date('Y-m-01 00:00:00', $current_time),
+                            'after' => gmdate('Y-m-01 00:00:00', $current_time),
                             'inclusive' => true,
                         );
                         break;
@@ -428,8 +440,8 @@ class Miapg_Post_Ideas_CPT {
                         $first_day_last_month = strtotime('first day of last month', $current_time);
                         $last_day_last_month = strtotime('last day of last month', $current_time);
                         $date_query[] = array(
-                            'after' => date('Y-m-d 00:00:00', $first_day_last_month),
-                            'before' => date('Y-m-d 23:59:59', $last_day_last_month),
+                            'after' => gmdate('Y-m-d 00:00:00', $first_day_last_month),
+                            'before' => gmdate('Y-m-d 23:59:59', $last_day_last_month),
                             'inclusive' => true,
                         );
                         break;
@@ -455,16 +467,17 @@ class Miapg_Post_Ideas_CPT {
     public function updated_messages($messages) {
         $messages['miapg_post_idea'] = array(
             0 => '',
-            1 => __('Idea updated.', MIAPG_TEXT_DOMAIN),
-            2 => __('Custom field updated.', MIAPG_TEXT_DOMAIN),
-            3 => __('Custom field deleted.', MIAPG_TEXT_DOMAIN),
-            4 => __('Idea updated.', MIAPG_TEXT_DOMAIN),
-            5 => isset($_GET['revision']) ? __('Idea restored from revision', MIAPG_TEXT_DOMAIN) : false,
-            6 => __('Idea saved.', MIAPG_TEXT_DOMAIN),
-            7 => __('Idea saved.', MIAPG_TEXT_DOMAIN),
-            8 => __('Idea submitted.', MIAPG_TEXT_DOMAIN),
-            9 => __('Idea scheduled.', MIAPG_TEXT_DOMAIN),
-            10 => __('Idea draft updated.', MIAPG_TEXT_DOMAIN),
+            1 => __('Idea updated.', 'miapg-post-generator'),
+            2 => __('Custom field updated.', 'miapg-post-generator'),
+            3 => __('Custom field deleted.', 'miapg-post-generator'),
+            4 => __('Idea updated.', 'miapg-post-generator'),
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            5 => isset($_GET['revision']) ? __('Idea restored from revision', 'miapg-post-generator') : false,
+            6 => __('Idea saved.', 'miapg-post-generator'),
+            7 => __('Idea saved.', 'miapg-post-generator'),
+            8 => __('Idea submitted.', 'miapg-post-generator'),
+            9 => __('Idea scheduled.', 'miapg-post-generator'),
+            10 => __('Idea draft updated.', 'miapg-post-generator'),
         );
         return $messages;
     }
@@ -585,9 +598,9 @@ class Miapg_Post_Ideas_CPT {
      * Register bulk actions
      */
     public function register_bulk_actions($bulk_actions) {
-        $bulk_actions['generate_posts'] = __('Generate Posts', MIAPG_TEXT_DOMAIN);
-        $bulk_actions['add_keywords'] = __('Add Keywords', MIAPG_TEXT_DOMAIN);
-        $bulk_actions['bulk_delete_ideas'] = __('Delete Ideas', MIAPG_TEXT_DOMAIN);
+        $bulk_actions['generate_posts'] = __('Generate Posts', 'miapg-post-generator');
+        $bulk_actions['add_keywords'] = __('Add Keywords', 'miapg-post-generator');
+        $bulk_actions['bulk_delete_ideas'] = __('Delete Ideas', 'miapg-post-generator');
         return $bulk_actions;
     }
     
@@ -683,59 +696,68 @@ class Miapg_Post_Ideas_CPT {
     public function bulk_action_admin_notice() {
         if (!empty($_REQUEST['bulk_generated'])) {
             $generated = intval($_REQUEST['bulk_generated']);
-            $failed = intval($_REQUEST['bulk_failed']);
+            $failed = isset($_REQUEST['bulk_failed']) ? intval($_REQUEST['bulk_failed']) : 0;
             
             if ($generated > 0) {
+                /* translators: %d: number of posts generated */
                 printf(
                     '<div class="notice notice-success is-dismissible"><p>' . 
-                    _n('%d post generated successfully.', '%d posts generated successfully.', $generated, MIAPG_TEXT_DOMAIN) . 
+                    // translators: %d is the number of posts generated
+                    esc_html(_n('%d post generated successfully.', '%d posts generated successfully.', $generated, 'miapg-post-generator')) . 
                     '</p></div>',
-                    $generated
+                    esc_html($generated)
                 );
             }
             
             if ($failed > 0) {
+                /* translators: %d: number of posts that failed */
                 printf(
                     '<div class="notice notice-error is-dismissible"><p>' . 
-                    _n('%d post failed to generate.', '%d posts failed to generate.', $failed, MIAPG_TEXT_DOMAIN) . 
+                    // translators: %d is the number of posts that failed
+                    esc_html(_n('%d post failed to generate.', '%d posts failed to generate.', $failed, 'miapg-post-generator')) . 
                     '</p></div>',
-                    $failed
+                    esc_html($failed)
                 );
             }
         }
         
         if (!empty($_REQUEST['bulk_deleted'])) {
             $deleted = intval($_REQUEST['bulk_deleted']);
-            $failed = intval($_REQUEST['bulk_delete_failed']);
+            $failed = isset($_REQUEST['bulk_delete_failed']) ? intval($_REQUEST['bulk_delete_failed']) : 0;
             
             if ($deleted > 0) {
+                /* translators: %d: number of ideas deleted */
                 printf(
                     '<div class="notice notice-success is-dismissible"><p>' . 
-                    _n('%d idea deleted successfully.', '%d ideas deleted successfully.', $deleted, MIAPG_TEXT_DOMAIN) . 
+                    // translators: %d is the number of ideas deleted
+                    esc_html(_n('%d idea deleted successfully.', '%d ideas deleted successfully.', $deleted, 'miapg-post-generator')) . 
                     '</p></div>',
-                    $deleted
+                    esc_html($deleted)
                 );
             }
             
             if ($failed > 0) {
+                /* translators: %d: number of ideas that failed to delete */
                 printf(
                     '<div class="notice notice-error is-dismissible"><p>' . 
-                    _n('%d idea failed to delete.', '%d ideas failed to delete.', $failed, MIAPG_TEXT_DOMAIN) . 
+                    // translators: %d is the number of ideas that failed to delete
+                    esc_html(_n('%d idea failed to delete.', '%d ideas failed to delete.', $failed, 'miapg-post-generator')) . 
                     '</p></div>',
-                    $failed
+                    esc_html($failed)
                 );
             }
         }
         
-        if (!empty($_REQUEST['bulk_action']) && $_REQUEST['bulk_action'] === 'add_keywords') {
-            $selected_ids = sanitize_text_field($_REQUEST['selected_ids']);
+        if (!empty($_REQUEST['bulk_action']) && sanitize_text_field(wp_unslash($_REQUEST['bulk_action'])) === 'add_keywords') {
+            $selected_ids = isset($_REQUEST['selected_ids']) ? sanitize_text_field(wp_unslash($_REQUEST['selected_ids'])) : '';
             if ($selected_ids) {
                 echo '<div class="notice notice-info is-dismissible">';
-                echo '<p>' . __('Add keywords to selected ideas:', MIAPG_TEXT_DOMAIN) . '</p>';
+                echo '<p>' . esc_html__('Add keywords to selected ideas:', 'miapg-post-generator') . '</p>';
                 echo '<form method="post" style="display: inline-block;">';
+                wp_nonce_field('bulk_keywords_action');
                 echo '<input type="hidden" name="idea_ids" value="' . esc_attr($selected_ids) . '">';
-                echo '<input type="text" name="bulk_keyword" placeholder="' . __('Enter keyword', MIAPG_TEXT_DOMAIN) . '" style="width: 300px;">';
-                echo '<input type="submit" name="apply_keywords" value="' . __('Apply Keywords', MIAPG_TEXT_DOMAIN) . '" class="button button-primary">';
+                echo '<input type="text" name="bulk_keyword" placeholder="' . esc_attr__('Enter keyword', 'miapg-post-generator') . '" style="width: 300px;">';
+                echo '<input type="submit" name="apply_keywords" value="' . esc_attr__('Apply Keywords', 'miapg-post-generator') . '" class="button button-primary">';
                 echo '</form>';
                 echo '</div>';
             }
@@ -743,8 +765,12 @@ class Miapg_Post_Ideas_CPT {
         
         // Handle keyword application
         if (!empty($_POST['apply_keywords']) && !empty($_POST['idea_ids']) && !empty($_POST['bulk_keyword'])) {
-            $idea_ids = explode(',', sanitize_text_field($_POST['idea_ids']));
-            $keyword = sanitize_text_field($_POST['bulk_keyword']);
+            // Verify nonce
+            if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'bulk_keywords_action')) {
+                wp_die(esc_html__('Security check failed', 'miapg-post-generator'));
+            }
+            $idea_ids = explode(',', sanitize_text_field(wp_unslash($_POST['idea_ids'])));
+            $keyword = sanitize_text_field(wp_unslash($_POST['bulk_keyword']));
             $updated_count = 0;
             
             foreach ($idea_ids as $idea_id) {
@@ -756,11 +782,13 @@ class Miapg_Post_Ideas_CPT {
             }
             
             if ($updated_count > 0) {
+                /* translators: %1$d: number of ideas, %2$s: keyword */
                 printf(
                     '<div class="notice notice-success is-dismissible"><p>' . 
-                    _n('%d idea updated with keyword "%s".', '%d ideas updated with keyword "%s".', $updated_count, MIAPG_TEXT_DOMAIN) . 
+                    // translators: %1$d is the number of ideas, %2$s is the keyword
+                    esc_html(_n('%1$d idea updated with keyword "%2$s".', '%1$d ideas updated with keyword "%2$s".', $updated_count, 'miapg-post-generator')) . 
                     '</p></div>',
-                    $updated_count,
+                    esc_html($updated_count),
                     esc_html($keyword)
                 );
             }
@@ -790,36 +818,36 @@ class Miapg_Post_Ideas_CPT {
             <div class="ideas-stats-dashboard" style="background: #fff; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 <h3 style="margin-top: 0; color: #1d2327; display: flex; align-items: center;">
                     <span class="dashicons dashicons-lightbulb" style="margin-right: 10px; color: #2271b1;"></span>
-                    <?php _e('Ideas Statistics', MIAPG_TEXT_DOMAIN); ?>
+                    <?php esc_html_e('Ideas Statistics', 'miapg-post-generator'); ?>
                 </h3>
                 <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px;">
                     <div class="stat-card" style="background: #f0f6fc; padding: 15px; border-radius: 6px; border-left: 4px solid #2271b1;">
-                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #2271b1;"><?php echo $stats['total']; ?></div>
-                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php _e('Total Ideas', MIAPG_TEXT_DOMAIN); ?></div>
+                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #2271b1;"><?php echo esc_html($stats['total']); ?></div>
+                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php esc_html_e('Total Ideas', 'miapg-post-generator'); ?></div>
                     </div>
                     <div class="stat-card" style="background: #f0f9ff; padding: 15px; border-radius: 6px; border-left: 4px solid #0ea5e9;">
-                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #0ea5e9;"><?php echo $stats['with_keywords']; ?></div>
-                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php _e('With Keywords', MIAPG_TEXT_DOMAIN); ?></div>
+                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #0ea5e9;"><?php echo esc_html($stats['with_keywords']); ?></div>
+                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php esc_html_e('With Keywords', 'miapg-post-generator'); ?></div>
                     </div>
                     <div class="stat-card" style="background: #fef3c7; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b;">
-                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #f59e0b;"><?php echo $stats['without_keywords']; ?></div>
-                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php _e('Without Keywords', MIAPG_TEXT_DOMAIN); ?></div>
+                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #f59e0b;"><?php echo esc_html($stats['without_keywords']); ?></div>
+                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php esc_html_e('Without Keywords', 'miapg-post-generator'); ?></div>
                     </div>
                     <div class="stat-card" style="background: #f0fdf4; padding: 15px; border-radius: 6px; border-left: 4px solid #22c55e;">
-                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #22c55e;"><?php echo $stats['this_week']; ?></div>
-                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php _e('This Week', MIAPG_TEXT_DOMAIN); ?></div>
+                        <div class="stat-number" style="font-size: 32px; font-weight: bold; color: #22c55e;"><?php echo esc_html($stats['this_week']); ?></div>
+                        <div class="stat-label" style="color: #646970; font-size: 14px;"><?php esc_html_e('This Week', 'miapg-post-generator'); ?></div>
                     </div>
                 </div>
                 <div class="quick-actions" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
-                    <strong style="color: #1d2327; margin-right: 15px;"><?php _e('Quick Actions:', MIAPG_TEXT_DOMAIN); ?></strong>
-                    <a href="<?php echo admin_url('admin.php?page=miapg-post-generator&tab=ideas'); ?>" class="button button-primary">
-                        ✨ <?php _e('Generate New Ideas', MIAPG_TEXT_DOMAIN); ?>
+                    <strong style="color: #1d2327; margin-right: 15px;"><?php esc_html_e('Quick Actions:', 'miapg-post-generator'); ?></strong>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=ideas')); ?>" class="button button-primary">
+                        ✨ <?php esc_html_e('Generate New Ideas', 'miapg-post-generator'); ?>
                     </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=miapg_post_idea&used_filter=without_keyword'); ?>" class="button button-secondary">
-                        🔑 <?php _e('Add Keywords', MIAPG_TEXT_DOMAIN); ?>
+                    <a href="<?php echo esc_url(admin_url('edit.php?post_type=miapg_post_idea&used_filter=without_keyword')); ?>" class="button button-secondary">
+                        🔑 <?php esc_html_e('Add Keywords', 'miapg-post-generator'); ?>
                     </a>
-                    <a href="<?php echo admin_url('admin.php?page=miapg-post-generator&tab=create'); ?>" class="button button-secondary">
-                        📝 <?php _e('Create Post', MIAPG_TEXT_DOMAIN); ?>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create')); ?>" class="button button-secondary">
+                        📝 <?php esc_html_e('Create Post', 'miapg-post-generator'); ?>
                     </a>
                 </div>
             </div>
@@ -831,38 +859,43 @@ class Miapg_Post_Ideas_CPT {
      * Get post ideas statistics
      */
     private function get_post_ideas_stats() {
+        global $wpdb;
+        
         $total_ideas = wp_count_posts('miapg_post_idea');
         
-        $ideas_with_keywords = get_posts(array(
-            'post_type' => 'miapg_post_idea',
-            'numberposts' => -1,
-            'meta_query' => array(
-                array(
-                    'key' => '_miapg_idea_keyword',
-                    'value' => '',
-                    'compare' => '!='
-                )
-            ),
-            'fields' => 'ids'
-        ));
+        // Use direct SQL query for better performance instead of meta_query
+        $ideas_with_keywords_count = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(DISTINCT p.ID) 
+                FROM {$wpdb->posts} p 
+                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
+                WHERE p.post_type = %s 
+                AND p.post_status = 'publish' 
+                AND pm.meta_key = '_miapg_idea_keyword' 
+                AND pm.meta_value != ''",
+                'miapg_post_idea'
+            )
+        );
         
-        $ideas_this_week = get_posts(array(
-            'post_type' => 'miapg_post_idea',
-            'numberposts' => -1,
-            'date_query' => array(
-                array(
-                    'after' => date('Y-m-d 00:00:00', strtotime('last sunday')),
-                    'inclusive' => true,
-                )
-            ),
-            'fields' => 'ids'
-        ));
+        // Use direct SQL query for better performance instead of date_query
+        $last_sunday = gmdate('Y-m-d 00:00:00', strtotime('last sunday'));
+        $ideas_this_week_count = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(ID) 
+                FROM {$wpdb->posts} 
+                WHERE post_type = %s 
+                AND post_status = 'publish' 
+                AND post_date >= %s",
+                'miapg_post_idea',
+                $last_sunday
+            )
+        );
         
         return array(
             'total' => $total_ideas->publish,
-            'with_keywords' => count($ideas_with_keywords),
-            'without_keywords' => $total_ideas->publish - count($ideas_with_keywords),
-            'this_week' => count($ideas_this_week)
+            'with_keywords' => intval($ideas_with_keywords_count),
+            'without_keywords' => $total_ideas->publish - intval($ideas_with_keywords_count),
+            'this_week' => intval($ideas_this_week_count)
         );
     }
     
@@ -880,8 +913,8 @@ class Miapg_Post_Ideas_CPT {
             $views['delete_all'] = sprintf(
                 '<a href="%s" class="delete-all-ideas" style="color: #d63638; font-weight: bold;" onclick="return confirm(\'%s\');">🗑️ %s (%d)</a>',
                 $delete_all_url,
-                esc_js(__('Are you sure you want to delete ALL ideas? This action cannot be undone.', MIAPG_TEXT_DOMAIN)),
-                __('Delete All Ideas', MIAPG_TEXT_DOMAIN),
+                esc_js(__('Are you sure you want to delete ALL ideas? This action cannot be undone.', 'miapg-post-generator')),
+                __('Delete All Ideas', 'miapg-post-generator'),
                 $total_ideas->publish
             );
         }
@@ -893,13 +926,13 @@ class Miapg_Post_Ideas_CPT {
      */
     public function handle_delete_all_ideas() {
         // Check nonce
-        if (!wp_verify_nonce($_GET['_wpnonce'], 'delete_all_ideas')) {
-            wp_die(__('Security check failed', MIAPG_TEXT_DOMAIN));
+        if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'delete_all_ideas')) {
+            wp_die(esc_html__('Security check failed', 'miapg-post-generator'));
         }
         
         // Check permissions
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have permission to perform this action', MIAPG_TEXT_DOMAIN));
+            wp_die(esc_html__('You do not have permission to perform this action', 'miapg-post-generator'));
         }
         
         // Get all post ideas
@@ -937,25 +970,30 @@ class Miapg_Post_Ideas_CPT {
      * Show delete all admin notice
      */
     public function show_delete_all_notice() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (!empty($_REQUEST['all_deleted'])) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $deleted = intval($_REQUEST['all_deleted']);
-            $failed = intval($_REQUEST['all_delete_failed']);
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $failed = isset($_REQUEST['all_delete_failed']) ? intval($_REQUEST['all_delete_failed']) : 0;
             
             if ($deleted > 0) {
                 printf(
                     '<div class="notice notice-success is-dismissible"><p>' . 
-                    __('All %d ideas have been deleted successfully.', MIAPG_TEXT_DOMAIN) . 
+                    // translators: %d: number of ideas deleted
+                    esc_html(__('All %d ideas have been deleted successfully.', 'miapg-post-generator')) . 
                     '</p></div>',
-                    $deleted
+                    esc_html($deleted)
                 );
             }
             
             if ($failed > 0) {
                 printf(
                     '<div class="notice notice-error is-dismissible"><p>' . 
-                    __('%d ideas failed to delete.', MIAPG_TEXT_DOMAIN) . 
+                    // translators: %d: number of ideas that failed to delete
+                    esc_html(__('%d ideas failed to delete.', 'miapg-post-generator')) . 
                     '</p></div>',
-                    $failed
+                    esc_html($failed)
                 );
             }
         }

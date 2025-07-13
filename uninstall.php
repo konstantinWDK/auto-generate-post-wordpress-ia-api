@@ -45,12 +45,21 @@ foreach ($options as $option) {
     delete_option($option);
 }
 
-// Delete all post ideas
+// Delete all post ideas using WP functions
+$posts = get_posts(array(
+    'post_type' => 'miapg_post_idea',
+    'post_status' => 'any',
+    'numberposts' => -1,
+    'fields' => 'ids'
+));
+
+foreach ($posts as $post_id) {
+    wp_delete_post($post_id, true);
+}
+
+// Clean up orphaned meta data
 global $wpdb;
-
-$wpdb->query("DELETE FROM {$wpdb->posts} WHERE post_type = 'miapg_post_idea'");
-
-// Delete related meta data
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id NOT IN (SELECT id FROM {$wpdb->posts})");
 
 // Clear scheduled events

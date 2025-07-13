@@ -13,7 +13,6 @@
  * Requires PHP: 7.4
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Network: false
  */
 
 // Prevent direct access
@@ -73,7 +72,7 @@ class Miapg_Main {
      */
     public function load_textdomain() {
         load_plugin_textdomain(
-            MIAPG_TEXT_DOMAIN,
+            'miapg-post-generator',
             false,
             dirname(plugin_basename(__FILE__)) . '/languages/'
         );
@@ -297,12 +296,21 @@ class Miapg_Main {
      * Remove post ideas data
      */
     private static function remove_post_ideas_data() {
+        // Delete all post ideas using WP functions
+        $posts = get_posts(array(
+            'post_type' => 'miapg_post_idea',
+            'post_status' => 'any',
+            'numberposts' => -1,
+            'fields' => 'ids'
+        ));
+
+        foreach ($posts as $post_id) {
+            wp_delete_post($post_id, true);
+        }
+
+        // Clean up orphaned meta data
         global $wpdb;
-        
-        // Delete all post ideas
-        $wpdb->query("DELETE FROM {$wpdb->posts} WHERE post_type = 'miapg_post_idea'");
-        
-        // Delete related meta data
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id NOT IN (SELECT id FROM {$wpdb->posts})");
     }
     

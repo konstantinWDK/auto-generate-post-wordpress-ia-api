@@ -39,8 +39,8 @@ class Miapg_Admin {
      */
     public function add_admin_menu() {
         add_menu_page(
-            __('Auto Post Generator', MIAPG_TEXT_DOMAIN),
-            __('Auto Post Generator', MIAPG_TEXT_DOMAIN),
+            __('Auto Post Generator', 'miapg-post-generator'),
+            __('Auto Post Generator', 'miapg-post-generator'),
             'manage_options',
             'miapg-post-generator',
             array($this, 'admin_page_content'),
@@ -50,8 +50,8 @@ class Miapg_Admin {
         
         add_submenu_page(
             'miapg-post-generator',
-            __('Settings', MIAPG_TEXT_DOMAIN),
-            __('Settings', MIAPG_TEXT_DOMAIN),
+            __('Settings', 'miapg-post-generator'),
+            __('Settings', 'miapg-post-generator'),
             'manage_options',
             'miapg-post-generator',
             array($this, 'admin_page_content')
@@ -98,9 +98,9 @@ class Miapg_Admin {
                 'ajaxurl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('miapg_nonce'),
                 'strings' => array(
-                    'confirm_delete' => __('Are you sure you want to delete this idea?', MIAPG_TEXT_DOMAIN),
-                    'generating' => __('Generating...', MIAPG_TEXT_DOMAIN),
-                    'error' => __('An error occurred. Please try again.', MIAPG_TEXT_DOMAIN),
+                    'confirm_delete' => __('Are you sure you want to delete this idea?', 'miapg-post-generator'),
+                    'generating' => __('Generating...', 'miapg-post-generator'),
+                    'error' => __('An error occurred. Please try again.', 'miapg-post-generator'),
                 )
             )
         );
@@ -130,9 +130,10 @@ class Miapg_Admin {
                 <p>
                     <?php
                     printf(
-                        __('Auto Post Generator: Please configure your %s API key in the <a href="%s">settings</a> to start generating content.', MIAPG_TEXT_DOMAIN),
-                        ucfirst($provider),
-                        $settings_url
+                        // translators: %1$s is the API provider name, %2$s is the settings URL
+                        wp_kses(__('Auto Post Generator: Please configure your %1$s API key in the <a href="%2$s">settings</a> to start generating content.', 'miapg-post-generator'), array('a' => array('href' => array()))),
+                        esc_html(ucfirst($provider)),
+                        esc_url($settings_url)
                     );
                     ?>
                 </p>

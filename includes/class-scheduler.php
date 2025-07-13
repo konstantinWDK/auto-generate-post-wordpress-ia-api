@@ -197,17 +197,17 @@ class Miapg_Scheduler {
     public static function add_cron_intervals($schedules) {
         $schedules['weekly'] = array(
             'interval' => 604800, // 1 week
-            'display' => __('Weekly', MIAPG_TEXT_DOMAIN)
+            'display' => __('Weekly', 'miapg-post-generator')
         );
         
         $schedules['biweekly'] = array(
             'interval' => 1209600, // 2 weeks
-            'display' => __('Biweekly', MIAPG_TEXT_DOMAIN)
+            'display' => __('Biweekly', 'miapg-post-generator')
         );
         
         $schedules['monthly'] = array(
             'interval' => 2635200, // 1 month (approximate)
-            'display' => __('Monthly', MIAPG_TEXT_DOMAIN)
+            'display' => __('Monthly', 'miapg-post-generator')
         );
         
         return $schedules;
