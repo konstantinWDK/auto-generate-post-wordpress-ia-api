@@ -112,6 +112,25 @@ class Miapg_Translator {
                 'Additional instructions for content generation' => 'Instrucciones adicionales para generación de contenido',
                 'Yes' => 'Sí',
                 'No' => 'No',
+                // Writing Style options
+                'Informative' => 'Informativo',
+                'Persuasive' => 'Persuasivo',
+                'Narrative' => 'Narrativo',
+                'Tutorial' => 'Tutorial',
+                // Target Audience options
+                'General' => 'General',
+                'Beginners' => 'Principiantes',
+                'Intermediate' => 'Intermedios',
+                'Experts' => 'Expertos',
+                // Tone options
+                'Professional' => 'Profesional',
+                'Friendly' => 'Amigable',
+                'Formal' => 'Formal',
+                'Casual' => 'Casual',
+                // SEO Focus options
+                'Low' => 'Bajo',
+                'Medium' => 'Medio',
+                'High' => 'Alto',
                 // Ideas Tab
                 'Generate New Ideas' => 'Generar Nuevas Ideas',
                 'Generate Ideas from Topic' => 'Generar Ideas desde Tema',
@@ -210,7 +229,28 @@ class Miapg_Translator {
                 'Do you want to delete this idea since it has been used to generate the post?' => 'Do you want to delete this idea since it has been used to generate the post?',
                 'Delete Used Idea' => 'Delete Used Idea',
                 'Idea deleted successfully.' => 'Idea deleted successfully.',
-                'Error deleting idea.' => 'Error deleting idea.'
+                'Error deleting idea.' => 'Error deleting idea.',
+                // Writing Style options
+                'Informative' => 'Informative',
+                'Persuasive' => 'Persuasive',
+                'Narrative' => 'Narrative',
+                'Tutorial' => 'Tutorial',
+                // Target Audience options
+                'General' => 'General',
+                'Beginners' => 'Beginners',
+                'Intermediate' => 'Intermediate',
+                'Experts' => 'Experts',
+                // Tone options
+                'Professional' => 'Professional',
+                'Friendly' => 'Friendly',
+                'Formal' => 'Formal',
+                'Casual' => 'Casual',
+                // SEO Focus options
+                'Low' => 'Low',
+                'Medium' => 'Medium',
+                'High' => 'High',
+                'Yes' => 'Yes',
+                'No' => 'No'
             ),
             'ru' => array(
                 'General Settings' => 'Основные настройки',
@@ -247,7 +287,28 @@ class Miapg_Translator {
                 'Do you want to delete this idea since it has been used to generate the post?' => 'Хотите удалить эту идею, поскольку она была использована для создания поста?',
                 'Delete Used Idea' => 'Удалить использованную идею',
                 'Idea deleted successfully.' => 'Идея успешно удалена.',
-                'Error deleting idea.' => 'Ошибка удаления идеи.'
+                'Error deleting idea.' => 'Ошибка удаления идеи.',
+                // Writing Style options
+                'Informative' => 'Информационный',
+                'Persuasive' => 'Убедительный',
+                'Narrative' => 'Повествовательный',
+                'Tutorial' => 'Обучающий',
+                // Target Audience options
+                'General' => 'Общая',
+                'Beginners' => 'Новички',
+                'Intermediate' => 'Средний',
+                'Experts' => 'Эксперты',
+                // Tone options
+                'Professional' => 'Профессиональный',
+                'Friendly' => 'Дружелюбный',
+                'Formal' => 'Официальный',
+                'Casual' => 'Неформальный',
+                // SEO Focus options
+                'Low' => 'Низкий',
+                'Medium' => 'Средний',
+                'High' => 'Высокий',
+                'Yes' => 'Да',
+                'No' => 'Нет'
             )
         );
     }

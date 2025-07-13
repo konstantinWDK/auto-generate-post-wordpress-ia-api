@@ -1,6 +1,6 @@
 === MaestrIA post generator ===
 Contributors: konstantinWDK
-Donate link: https://webdesignerk.com/donate
+Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8

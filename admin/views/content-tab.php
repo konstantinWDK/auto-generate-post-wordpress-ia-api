@@ -19,10 +19,10 @@ if (!defined('ABSPATH')) {
             <th scope="row"><?php esc_html_e('Writing Style', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="miapg_writing_style">
-                    <option value="informativo" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'informativo'); ?>>Informativo</option>
-                    <option value="persuasivo" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'persuasivo'); ?>>Persuasivo</option>
-                    <option value="narrativo" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'narrativo'); ?>>Narrativo</option>
-                    <option value="tutorial" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'tutorial'); ?>>Tutorial</option>
+                    <option value="informativo" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'informativo'); ?>><?php echo esc_html(miapg_translate('Informative')); ?></option>
+                    <option value="persuasivo" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'persuasivo'); ?>><?php echo esc_html(miapg_translate('Persuasive')); ?></option>
+                    <option value="narrativo" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'narrativo'); ?>><?php echo esc_html(miapg_translate('Narrative')); ?></option>
+                    <option value="tutorial" <?php selected(Miapg_Settings::get_setting('miapg_writing_style'), 'tutorial'); ?>><?php echo esc_html(miapg_translate('Tutorial')); ?></option>
                 </select>
             </td>
         </tr>
@@ -30,10 +30,10 @@ if (!defined('ABSPATH')) {
             <th scope="row"><?php esc_html_e('Target Audience', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="miapg_target_audience">
-                    <option value="general" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'general'); ?>>General</option>
-                    <option value="principiantes" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'principiantes'); ?>>Principiantes</option>
-                    <option value="intermedios" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'intermedios'); ?>>Intermedios</option>
-                    <option value="expertos" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'expertos'); ?>>Expertos</option>
+                    <option value="general" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'general'); ?>><?php echo esc_html(miapg_translate('General')); ?></option>
+                    <option value="principiantes" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'principiantes'); ?>><?php echo esc_html(miapg_translate('Beginners')); ?></option>
+                    <option value="intermedios" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'intermedios'); ?>><?php echo esc_html(miapg_translate('Intermediate')); ?></option>
+                    <option value="expertos" <?php selected(Miapg_Settings::get_setting('miapg_target_audience'), 'expertos'); ?>><?php echo esc_html(miapg_translate('Experts')); ?></option>
                 </select>
             </td>
         </tr>
@@ -41,10 +41,10 @@ if (!defined('ABSPATH')) {
             <th scope="row"><?php esc_html_e('Tone', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="miapg_tone">
-                    <option value="profesional" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'profesional'); ?>>Profesional</option>
-                    <option value="amigable" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'amigable'); ?>>Amigable</option>
-                    <option value="formal" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'formal'); ?>>Formal</option>
-                    <option value="casual" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'casual'); ?>>Casual</option>
+                    <option value="profesional" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'profesional'); ?>><?php echo esc_html(miapg_translate('Professional')); ?></option>
+                    <option value="amigable" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'amigable'); ?>><?php echo esc_html(miapg_translate('Friendly')); ?></option>
+                    <option value="formal" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'formal'); ?>><?php echo esc_html(miapg_translate('Formal')); ?></option>
+                    <option value="casual" <?php selected(Miapg_Settings::get_setting('miapg_tone'), 'casual'); ?>><?php echo esc_html(miapg_translate('Casual')); ?></option>
                 </select>
             </td>
         </tr>
@@ -59,8 +59,8 @@ if (!defined('ABSPATH')) {
             <th scope="row"><?php esc_html_e('Include FAQ', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="miapg_include_faq">
-                    <option value="yes" <?php selected(Miapg_Settings::get_setting('miapg_include_faq'), 'yes'); ?>>Yes</option>
-                    <option value="no" <?php selected(Miapg_Settings::get_setting('miapg_include_faq'), 'no'); ?>>No</option>
+                    <option value="yes" <?php selected(Miapg_Settings::get_setting('miapg_include_faq'), 'yes'); ?>><?php echo esc_html(miapg_translate('Yes')); ?></option>
+                    <option value="no" <?php selected(Miapg_Settings::get_setting('miapg_include_faq'), 'no'); ?>><?php echo esc_html(miapg_translate('No')); ?></option>
                 </select>
             </td>
         </tr>
@@ -68,8 +68,8 @@ if (!defined('ABSPATH')) {
             <th scope="row"><?php esc_html_e('Include Lists', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="miapg_include_lists">
-                    <option value="yes" <?php selected(Miapg_Settings::get_setting('miapg_include_lists'), 'yes'); ?>>Yes</option>
-                    <option value="no" <?php selected(Miapg_Settings::get_setting('miapg_include_lists'), 'no'); ?>>No</option>
+                    <option value="yes" <?php selected(Miapg_Settings::get_setting('miapg_include_lists'), 'yes'); ?>><?php echo esc_html(miapg_translate('Yes')); ?></option>
+                    <option value="no" <?php selected(Miapg_Settings::get_setting('miapg_include_lists'), 'no'); ?>><?php echo esc_html(miapg_translate('No')); ?></option>
                 </select>
             </td>
         </tr>
@@ -77,9 +77,9 @@ if (!defined('ABSPATH')) {
             <th scope="row"><?php esc_html_e('SEO Focus', 'miapg-post-generator'); ?></th>
             <td>
                 <select name="miapg_seo_focus">
-                    <option value="low" <?php selected(Miapg_Settings::get_setting('miapg_seo_focus'), 'low'); ?>>Low</option>
-                    <option value="medium" <?php selected(Miapg_Settings::get_setting('miapg_seo_focus'), 'medium'); ?>>Medium</option>
-                    <option value="high" <?php selected(Miapg_Settings::get_setting('miapg_seo_focus'), 'high'); ?>>High</option>
+                    <option value="low" <?php selected(Miapg_Settings::get_setting('miapg_seo_focus'), 'low'); ?>><?php echo esc_html(miapg_translate('Low')); ?></option>
+                    <option value="medium" <?php selected(Miapg_Settings::get_setting('miapg_seo_focus'), 'medium'); ?>><?php echo esc_html(miapg_translate('Medium')); ?></option>
+                    <option value="high" <?php selected(Miapg_Settings::get_setting('miapg_seo_focus'), 'high'); ?>><?php echo esc_html(miapg_translate('High')); ?></option>
                 </select>
             </td>
         </tr>

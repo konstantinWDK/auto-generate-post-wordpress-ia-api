@@ -1,7 +1,6 @@
 <?php
 /**
  * Plugin Name: MaestrIA post generator
- * Plugin URI: https://webdesignerk.com
  * Description: Advanced AI-powered content generator with idea management system, article-based generation, category selection, and optimized HTML output for WordPress.
  * Version: 3.1
  * Author: konstantinWDK

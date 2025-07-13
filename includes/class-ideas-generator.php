@@ -315,28 +315,44 @@ class Miapg_Ideas_Generator {
      * Get post ideas statistics
      */
     public static function get_post_ideas_stats() {
-        global $wpdb;
+        // Check cache first
+        $cache_key = 'miapg_ideas_stats';
+        $cached_stats = wp_cache_get($cache_key, 'miapg_post_generator');
+        
+        if (false !== $cached_stats) {
+            return $cached_stats;
+        }
         
         $total_ideas = wp_count_posts('miapg_post_idea');
         
-        // Use direct SQL query for better performance instead of meta_query
-        $ideas_with_keywords_count = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(DISTINCT p.ID) 
-                FROM {$wpdb->posts} p 
-                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
-                WHERE p.post_type = %s 
-                AND p.post_status = 'publish' 
-                AND pm.meta_key = '_miapg_idea_keyword' 
-                AND pm.meta_value != ''",
-                'miapg_post_idea'
-            )
+        // Get all published ideas and count those with keywords
+        $all_ideas = get_posts(array(
+            'post_type' => 'miapg_post_idea',
+            'post_status' => 'publish',
+            'fields' => 'ids',
+            'numberposts' => -1
+        ));
+        
+        // Count ideas with non-empty keywords
+        $with_keywords_count = 0;
+        if (!empty($all_ideas)) {
+            foreach ($all_ideas as $post_id) {
+                $keyword = get_post_meta($post_id, '_miapg_idea_keyword', true);
+                if (!empty($keyword)) {
+                    $with_keywords_count++;
+                }
+            }
+        }
+        
+        $stats = array(
+            'total' => $total_ideas->publish,
+            'with_keywords' => $with_keywords_count,
+            'without_keywords' => $total_ideas->publish - $with_keywords_count
         );
         
-        return array(
-            'total' => $total_ideas->publish,
-            'with_keywords' => intval($ideas_with_keywords_count),
-            'without_keywords' => $total_ideas->publish - intval($ideas_with_keywords_count)
-        );
+        // Cache for 5 minutes
+        wp_cache_set($cache_key, $stats, 'miapg_post_generator', 300);
+        
+        return $stats;
     }
 }

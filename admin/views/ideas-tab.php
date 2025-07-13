@@ -147,6 +147,7 @@ $ideas = get_posts(array(
                             <tr>
                                 <th scope="row" class="check-column">
                                     <label class="screen-reader-text" for="cb-select-<?php echo esc_attr($idea->ID); ?>"><?php 
+                                    // translators: %s is the idea title
                                     printf(esc_html__('Select %s', 'miapg-post-generator'), esc_html($idea->post_title)); ?></label>
                                     <input id="cb-select-<?php echo esc_attr($idea->ID); ?>" type="checkbox" name="idea_ids[]" value="<?php echo esc_attr($idea->ID); ?>" />
                                 </th>

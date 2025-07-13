@@ -859,44 +859,63 @@ class Miapg_Post_Ideas_CPT {
      * Get post ideas statistics
      */
     private function get_post_ideas_stats() {
-        global $wpdb;
+        // Check cache first
+        $cache_key = 'miapg_ideas_cpt_stats';
+        $cached_stats = wp_cache_get($cache_key, 'miapg_post_generator');
+        
+        if (false !== $cached_stats) {
+            return $cached_stats;
+        }
         
         $total_ideas = wp_count_posts('miapg_post_idea');
         
-        // Use direct SQL query for better performance instead of meta_query
-        $ideas_with_keywords_count = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(DISTINCT p.ID) 
-                FROM {$wpdb->posts} p 
-                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id 
-                WHERE p.post_type = %s 
-                AND p.post_status = 'publish' 
-                AND pm.meta_key = '_miapg_idea_keyword' 
-                AND pm.meta_value != ''",
-                'miapg_post_idea'
-            )
-        );
+        // Get all published ideas and count those with keywords (compliant approach)
+        $all_ideas = get_posts(array(
+            'post_type' => 'miapg_post_idea',
+            'post_status' => 'publish',
+            'fields' => 'ids',
+            'numberposts' => -1
+        ));
         
-        // Use direct SQL query for better performance instead of date_query
+        // Count ideas with non-empty keywords
+        $with_keywords_count = 0;
+        if (!empty($all_ideas)) {
+            foreach ($all_ideas as $post_id) {
+                $keyword = get_post_meta($post_id, '_miapg_idea_keyword', true);
+                if (!empty($keyword)) {
+                    $with_keywords_count++;
+                }
+            }
+        }
+        
+        // Use WP_Query instead of direct database query for this week's ideas
         $last_sunday = gmdate('Y-m-d 00:00:00', strtotime('last sunday'));
-        $ideas_this_week_count = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(ID) 
-                FROM {$wpdb->posts} 
-                WHERE post_type = %s 
-                AND post_status = 'publish' 
-                AND post_date >= %s",
-                'miapg_post_idea',
-                $last_sunday
-            )
+        $ideas_this_week = new WP_Query(array(
+            'post_type' => 'miapg_post_idea',
+            'post_status' => 'publish',
+            'date_query' => array(
+                array(
+                    'after' => $last_sunday,
+                    'inclusive' => true
+                )
+            ),
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false
+        ));
+        
+        $stats = array(
+            'total' => $total_ideas->publish,
+            'with_keywords' => $with_keywords_count,
+            'without_keywords' => $total_ideas->publish - $with_keywords_count,
+            'this_week' => $ideas_this_week->found_posts
         );
         
-        return array(
-            'total' => $total_ideas->publish,
-            'with_keywords' => intval($ideas_with_keywords_count),
-            'without_keywords' => $total_ideas->publish - intval($ideas_with_keywords_count),
-            'this_week' => intval($ideas_this_week_count)
-        );
+        // Cache for 5 minutes
+        wp_cache_set($cache_key, $stats, 'miapg_post_generator', 300);
+        
+        return $stats;
     }
     
     /**

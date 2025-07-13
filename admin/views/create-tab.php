@@ -39,7 +39,7 @@ if ($idea_id > 0) {
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Topic or Idea', 'miapg-post-generator'); ?></th>
                 <td>
-                    <input type="text" name="post_topic" required style="width: 100%;" 
+                    <input type="text" name="custom_prompt" required style="width: 100%;" 
                            placeholder="<?php esc_attr_e('e.g. How to optimize WordPress for SEO', 'miapg-post-generator'); ?>"
                            value="<?php echo esc_attr($idea_title); ?>" />
                     <?php if ($idea_id > 0): ?>
@@ -50,7 +50,7 @@ if ($idea_id > 0) {
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Main Keyword', 'miapg-post-generator'); ?></th>
                 <td>
-                    <input type="text" name="post_keyword" style="width: 100%;" 
+                    <input type="text" name="keyword" style="width: 100%;" 
                            placeholder="<?php esc_attr_e('e.g. SEO optimization, WordPress', 'miapg-post-generator'); ?>"
                            value="<?php echo esc_attr($idea_keyword); ?>" />
                     <p class="description"><?php esc_html_e('Main keyword to focus the content on', 'miapg-post-generator'); ?></p>
@@ -59,7 +59,7 @@ if ($idea_id > 0) {
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Category', 'miapg-post-generator'); ?></th>
                 <td>
-                    <select name="post_category">
+                    <select name="category_custom">
                         <option value=""><?php esc_html_e('Select Category', 'miapg-post-generator'); ?></option>
                         <?php foreach ($categories as $category): ?>
                             <option value="<?php echo esc_attr($category->term_id); ?>" 
@@ -82,7 +82,7 @@ if ($idea_id > 0) {
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Post Status', 'miapg-post-generator'); ?></th>
                 <td>
-                    <select name="post_status">
+                    <select name="post_status_custom">
                         <option value="publish" <?php selected(Miapg_Settings::get_setting('auto_post_status'), 'publish'); ?>>
                             <?php esc_html_e('Publish', 'miapg-post-generator'); ?>
                         </option>
@@ -95,8 +95,18 @@ if ($idea_id > 0) {
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Schedule Date', 'miapg-post-generator'); ?></th>
                 <td>
-                    <input type="datetime-local" name="schedule_date" />
+                    <input type="datetime-local" name="post_date" />
                     <p class="description"><?php esc_html_e('Leave empty to publish immediately', 'miapg-post-generator'); ?></p>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row"><?php esc_html_e('AI Provider', 'miapg-post-generator'); ?></th>
+                <td>
+                    <select name="ai_provider_custom">
+                        <option value="openai" <?php selected(Miapg_Settings::get_setting('ai_provider'), 'openai'); ?>>OpenAI</option>
+                        <option value="deepseek" <?php selected(Miapg_Settings::get_setting('ai_provider'), 'deepseek'); ?>>DeepSeek</option>
+                    </select>
+                    <p class="description"><?php esc_html_e('AI provider to use for this post', 'miapg-post-generator'); ?></p>
                 </td>
             </tr>
         </table>
@@ -106,7 +116,7 @@ if ($idea_id > 0) {
             <tr valign="top">
                 <th scope="row"><?php esc_html_e('Reference Article', 'miapg-post-generator'); ?></th>
                 <td>
-                    <textarea name="reference_article" rows="8" cols="50" 
+                    <textarea name="source_article" rows="8" cols="50" 
                               placeholder="<?php esc_attr_e('Paste an article to base the content on (optional)', 'miapg-post-generator'); ?>" 
                               style="width: 100%;"></textarea>
                     <p class="description"><?php esc_html_e('If provided, the post will be based on this article while being unique', 'miapg-post-generator'); ?></p>

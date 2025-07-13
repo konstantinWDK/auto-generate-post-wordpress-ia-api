@@ -267,8 +267,8 @@ class Miapg_Admin_Pages {
                     <th scope="row"><?php echo esc_html(miapg_translate('AI Provider')); ?></th>
                     <td>
                         <select name="miapg_ai_provider">
-                            <option value="openai" <?php selected(Miapg_Settings::get_setting('ai_provider'), 'openai'); ?>>OpenAI</option>
-                            <option value="deepseek" <?php selected(Miapg_Settings::get_setting('ai_provider'), 'deepseek'); ?>>DeepSeek</option>
+                            <option value="openai" <?php selected(Miapg_Settings::get_setting('miapg_ai_provider'), 'openai'); ?>>OpenAI</option>
+                            <option value="deepseek" <?php selected(Miapg_Settings::get_setting('miapg_ai_provider'), 'deepseek'); ?>>DeepSeek</option>
                         </select>
                         <p class="description"><?php echo esc_html(miapg_translate('Select the AI provider you want to use')); ?></p>
                     </td>
@@ -276,14 +276,14 @@ class Miapg_Admin_Pages {
                 <tr valign="top">
                     <th scope="row"><?php echo esc_html(miapg_translate('OpenAI API Key')); ?></th>
                     <td>
-                        <input type="password" name="miapg_openai_api_key" value="<?php echo esc_attr(Miapg_Settings::get_setting('openai_api_key')); ?>" style="width: 400px;" />
+                        <input type="password" name="miapg_openai_api_key" value="<?php echo esc_attr(Miapg_Settings::get_setting('miapg_openai_api_key')); ?>" style="width: 400px;" />
                         <p class="description"><?php echo esc_html(miapg_translate('Get your API key from')); ?> <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI</a></p>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><?php echo esc_html(miapg_translate('DeepSeek API Key')); ?></th>
                     <td>
-                        <input type="password" name="miapg_deepseek_api_key" value="<?php echo esc_attr(Miapg_Settings::get_setting('deepseek_api_key')); ?>" style="width: 400px;" />
+                        <input type="password" name="miapg_deepseek_api_key" value="<?php echo esc_attr(Miapg_Settings::get_setting('miapg_deepseek_api_key')); ?>" style="width: 400px;" />
                         <p class="description"><?php echo esc_html(miapg_translate('Get your API key from')); ?> <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek</a></p>
                     </td>
                 </tr>
@@ -292,9 +292,9 @@ class Miapg_Admin_Pages {
                     <td>
                         <?php
                         $categories = get_categories(array('hide_empty' => false));
-                        $selected_category = Miapg_Settings::get_setting('auto_post_category', 1);
+                        $selected_category = Miapg_Settings::get_setting('miapg_post_category', 1);
                         ?>
-                        <select name="miapg_auto_post_category">
+                        <select name="miapg_post_category">
                             <?php foreach ($categories as $category): ?>
                                 <option value="<?php echo esc_attr($category->term_id); ?>" <?php selected($selected_category, $category->term_id); ?>>
                                     <?php echo esc_html($category->name); ?>
@@ -305,15 +305,15 @@ class Miapg_Admin_Pages {
                 </tr>
                 <tr valign="top">
                     <th scope="row"><?php echo esc_html(miapg_translate('Tags (comma separated)')); ?></th>
-                    <td><input type="text" name="miapg_auto_post_tags" value="<?php echo esc_attr(Miapg_Settings::get_setting('auto_post_tags', '')); ?>" style="width: 400px;" /></td>
+                    <td><input type="text" name="miapg_post_tags" value="<?php echo esc_attr(Miapg_Settings::get_setting('miapg_post_tags', '')); ?>" style="width: 400px;" /></td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><?php echo esc_html(miapg_translate('Post Status')); ?></th>
                     <td>
-                        <select name="miapg_auto_post_status">
-                            <option value="publish" <?php selected(Miapg_Settings::get_setting('auto_post_status'), 'publish'); ?>><?php echo esc_html(miapg_translate('Publish')); ?></option>
-                            <option value="draft" <?php selected(Miapg_Settings::get_setting('auto_post_status'), 'draft'); ?>><?php echo esc_html(miapg_translate('Draft')); ?></option>
-                            <option value="future" <?php selected(Miapg_Settings::get_setting('auto_post_status'), 'future'); ?>><?php echo esc_html(miapg_translate('Scheduled')); ?></option>
+                        <select name="miapg_post_status">
+                            <option value="publish" <?php selected(Miapg_Settings::get_setting('miapg_post_status'), 'publish'); ?>><?php echo esc_html(miapg_translate('Publish')); ?></option>
+                            <option value="draft" <?php selected(Miapg_Settings::get_setting('miapg_post_status'), 'draft'); ?>><?php echo esc_html(miapg_translate('Draft')); ?></option>
+                            <option value="future" <?php selected(Miapg_Settings::get_setting('miapg_post_status'), 'future'); ?>><?php echo esc_html(miapg_translate('Scheduled')); ?></option>
                         </select>
                     </td>
                 </tr>
@@ -342,9 +342,9 @@ class Miapg_Admin_Pages {
                     <th scope="row"><?php echo esc_html(miapg_translate('OpenAI Model')); ?></th>
                     <td>
                         <select name="miapg_openai_model">
-                            <option value="gpt-4" <?php selected(Miapg_Settings::get_setting('openai_model'), 'gpt-4'); ?>>GPT-4</option>
-                            <option value="gpt-4-turbo" <?php selected(Miapg_Settings::get_setting('openai_model'), 'gpt-4-turbo'); ?>>GPT-4 Turbo</option>
-                            <option value="gpt-3.5-turbo" <?php selected(Miapg_Settings::get_setting('openai_model'), 'gpt-3.5-turbo'); ?>>GPT-3.5 Turbo</option>
+                            <option value="gpt-4" <?php selected(Miapg_Settings::get_setting('miapg_openai_model'), 'gpt-4'); ?>>GPT-4</option>
+                            <option value="gpt-4-turbo" <?php selected(Miapg_Settings::get_setting('miapg_openai_model'), 'gpt-4-turbo'); ?>>GPT-4 Turbo</option>
+                            <option value="gpt-3.5-turbo" <?php selected(Miapg_Settings::get_setting('miapg_openai_model'), 'gpt-3.5-turbo'); ?>>GPT-3.5 Turbo</option>
                         </select>
                     </td>
                 </tr>
@@ -352,22 +352,22 @@ class Miapg_Admin_Pages {
                     <th scope="row"><?php echo esc_html(miapg_translate('DeepSeek Model')); ?></th>
                     <td>
                         <select name="miapg_deepseek_model">
-                            <option value="deepseek-chat" <?php selected(Miapg_Settings::get_setting('deepseek_model'), 'deepseek-chat'); ?>>DeepSeek Chat</option>
-                            <option value="deepseek-coder" <?php selected(Miapg_Settings::get_setting('deepseek_model'), 'deepseek-coder'); ?>>DeepSeek Coder</option>
+                            <option value="deepseek-chat" <?php selected(Miapg_Settings::get_setting('miapg_deepseek_model'), 'deepseek-chat'); ?>>DeepSeek Chat</option>
+                            <option value="deepseek-coder" <?php selected(Miapg_Settings::get_setting('miapg_deepseek_model'), 'deepseek-coder'); ?>>DeepSeek Coder</option>
                         </select>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><?php echo esc_html(miapg_translate('Temperature (0.0 - 2.0)')); ?></th>
                     <td>
-                        <input type="number" name="miapg_ai_temperature" value="<?php echo esc_attr(Miapg_Settings::get_setting('ai_temperature', '0.7')); ?>" min="0" max="2" step="0.1" />
+                        <input type="number" name="miapg_ai_temperature" value="<?php echo esc_attr(Miapg_Settings::get_setting('miapg_ai_temperature', '0.7')); ?>" min="0" max="2" step="0.1" />
                         <p class="description"><?php echo esc_html(miapg_translate('Controls creativity. Higher values = more creativity')); ?></p>
                     </td>
                 </tr>
                 <tr valign="top">
                     <th scope="row"><?php echo esc_html(miapg_translate('Max Tokens')); ?></th>
                     <td>
-                        <input type="number" name="miapg_ai_max_tokens" value="<?php echo esc_attr(Miapg_Settings::get_setting('ai_max_tokens', '2000')); ?>" min="100" max="4000" />
+                        <input type="number" name="miapg_ai_max_tokens" value="<?php echo esc_attr(Miapg_Settings::get_setting('miapg_ai_max_tokens', '2000')); ?>" min="100" max="4000" />
                         <p class="description"><?php echo esc_html(miapg_translate('Maximum number of tokens in response')); ?></p>
                     </td>
                 </tr>
