@@ -4,7 +4,7 @@ Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.1
+Stable tag: 3.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,7 +15,14 @@ Advanced AI-powered content generator with idea management system and optimized 
 
 MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
-🚀 **NUEVO en la Versión 3.1:**
+🚀 **NUEVO en la Versión 3.2:**
+- **Sistema de Configuración Reparado**: Solucionados problemas críticos de guardado de ajustes
+- **Soporte Multiidioma Mejorado**: Traducciones completas para español, inglés y ruso
+- **Interfaz Completamente Traducida**: Todos los desplegables y opciones ahora se traducen automáticamente
+- **Configuraciones Persistentes**: Los ajustes ahora se guardan correctamente en todas las pestañas
+- **Coherencia de Nombres**: Unificación de nomenclatura de campos para mejor funcionamiento
+
+🔥 **Características de la Versión 3.1:**
 - **Gestión Completa de Ideas**: Sistema de Custom Post Type para almacenar y gestionar ideas
 - **Generación desde Artículos**: Crea contenido basado en artículos de referencia
 - **Selección de Categorías**: Selecciona categorías específicas al crear posts
@@ -128,6 +135,22 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 
 == Registro de Cambios ==
 
+= 3.2 =
+* CRÍTICO: Solucionados problemas críticos de guardado de configuraciones en todas las pestañas
+* CRÍTICO: Corregidos nombres de campos inconsistentes que impedían el guardado de ajustes
+* NUEVO: Traducciones completas para desplegables en pestaña Content Settings
+* NUEVO: Soporte completo de traducciones para español, inglés y ruso en todas las opciones
+* NUEVO: Traducciones automáticas para estilos de escritura (Informativo, Persuasivo, Narrativo, Tutorial)
+* NUEVO: Traducciones automáticas para audiencia objetivo (General, Principiantes, Intermedios, Expertos)
+* NUEVO: Traducciones automáticas para tonos (Profesional, Amigable, Formal, Casual)
+* NUEVO: Traducciones automáticas para opciones de SEO (Bajo, Medio, Alto)
+* NUEVO: Traducciones automáticas para opciones Sí/No en todos los idiomas
+* CORREGIDO: Coherencia en nomenclatura de campos entre formularios y configuraciones
+* CORREGIDO: Problemas de persistencia de datos en pestañas General, AI, Content y Scheduling
+* MEJORADO: Sistema de traducciones expandido con nuevas cadenas de texto
+* MEJORADO: Consistencia de la experiencia multiidioma en toda la interfaz
+* MEJORADO: Validación y sanitización de campos de configuración
+
 = 3.1 =
 * NUEVO: Sistema completo de gestión de ideas con Custom Post Type
 * NUEVO: Generación de posts basados en artículos de referencia
@@ -170,6 +193,9 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 * Lanzamiento inicial
 
 == Aviso de Actualización ==
+
+= 3.2 =
+**ACTUALIZACIÓN CRÍTICA**: Esta versión soluciona problemas importantes de guardado de configuraciones que afectaban el funcionamiento del plugin. Se recomienda encarecidamente actualizar. Después de actualizar, verifica que todas tus configuraciones se guarden correctamente y disfruta de la interfaz completamente traducida en tu idioma preferido.
 
 = 3.1 =
 Actualización mayor con sistema completo de gestión de ideas, generación desde artículos, selección de categorías y salida HTML optimizada. Después de actualizar, explora la nueva pestaña "Ideas de Posts" para gestionar tu banco de contenido y aprovecha las nuevas capacidades de generación desde artículos de referencia.
