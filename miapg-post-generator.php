@@ -57,7 +57,6 @@ class Miapg_Main {
      * Initialize hooks
      */
     private function init_hooks() {
-        add_action('plugins_loaded', array($this, 'load_textdomain'));
         add_action('init', array($this, 'init'));
         
         // Activation and deactivation hooks
@@ -66,16 +65,6 @@ class Miapg_Main {
         register_uninstall_hook(__FILE__, array('Miapg_Main', 'uninstall'));
     }
     
-    /**
-     * Load plugin textdomain
-     */
-    public function load_textdomain() {
-        load_plugin_textdomain(
-            'miapg-post-generator',
-            false,
-            dirname(plugin_basename(__FILE__)) . '/languages/'
-        );
-    }
     
     /**
      * Initialize plugin
