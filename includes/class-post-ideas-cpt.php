@@ -98,21 +98,23 @@ class Miapg_Post_Ideas_CPT {
             'has_archive' => false,
             'exclude_from_search' => true,
             'publicly_queryable' => false,
-            'capability_type' => 'post',
+            'capability_type' => 'miapg_post_idea',
+            'map_meta_cap' => true,
             'capabilities' => array(
-                'edit_post' => 'edit_posts',
-                'read_post' => 'read',
-                'delete_post' => 'delete_posts',
-                'edit_posts' => 'edit_posts',
-                'edit_others_posts' => 'edit_others_posts',
-                'publish_posts' => 'publish_posts',
-                'read_private_posts' => 'read_private_posts',
-                'delete_posts' => 'delete_posts',
-                'delete_private_posts' => 'delete_private_posts',
-                'delete_published_posts' => 'delete_published_posts',
-                'delete_others_posts' => 'delete_others_posts',
-                'edit_private_posts' => 'edit_private_posts',
-                'edit_published_posts' => 'edit_published_posts',
+                'edit_post' => 'edit_miapg_post_idea',
+                'read_post' => 'read_miapg_post_idea',
+                'delete_post' => 'delete_miapg_post_idea',
+                'edit_posts' => 'edit_miapg_post_ideas',
+                'edit_others_posts' => 'edit_others_miapg_post_ideas',
+                'publish_posts' => 'publish_miapg_post_ideas',
+                'read_private_posts' => 'read_private_miapg_post_ideas',
+                'delete_posts' => 'delete_miapg_post_ideas',
+                'delete_private_posts' => 'delete_private_miapg_post_ideas',
+                'delete_published_posts' => 'delete_published_miapg_post_ideas',
+                'delete_others_posts' => 'delete_others_miapg_post_ideas',
+                'edit_private_posts' => 'edit_private_miapg_post_ideas',
+                'edit_published_posts' => 'edit_published_miapg_post_ideas',
+                'create_posts' => 'create_miapg_post_ideas',
             ),
             'show_in_rest' => false,
             'menu_icon' => 'dashicons-lightbulb',
@@ -160,7 +162,7 @@ class Miapg_Post_Ideas_CPT {
         <table class="form-table">
             <tr>
                 <th><label for="post_idea_topic"><?php esc_html_e('Original Topic:', 'miapg-post-generator'); ?></label></th>
-                <td><input type="text" id="post_idea_topic" name="post_idea_topic" value="<?php echo esc_attr($topic); ?>" style="width: 100%;" readonly /></td>
+                <td><input type="text" id="post_idea_topic" name="post_idea_topic" value="<?php echo esc_attr(Miapg_Ideas_Generator::format_topic_text($topic)); ?>" style="width: 100%;" readonly /></td>
             </tr>
             <tr>
                 <th><label for="post_idea_keyword"><?php esc_html_e('Keyword:', 'miapg-post-generator'); ?></label></th>
@@ -244,7 +246,8 @@ class Miapg_Post_Ideas_CPT {
     public function custom_column_content($column, $post_id) {
         switch ($column) {
             case 'topic':
-                echo esc_html(get_post_meta($post_id, '_miapg_idea_topic', true));
+                $topic = get_post_meta($post_id, '_miapg_idea_topic', true);
+                echo esc_html(Miapg_Ideas_Generator::format_topic_text($topic));
                 break;
             case 'keyword':
                 $keyword = get_post_meta($post_id, '_miapg_idea_keyword', true);
@@ -628,11 +631,11 @@ class Miapg_Post_Ideas_CPT {
                 $prompt = $idea_post->post_title;
                 
                 // Use default settings
-                $category_id = Miapg_Settings::get_setting('auto_post_category', 1);
-                $tags = explode(',', Miapg_Settings::get_setting('auto_post_tags', ''));
-                $post_status = Miapg_Settings::get_setting('auto_post_status', 'draft');
-                $word_count = Miapg_Settings::get_setting('auto_post_word_count', '500');
-                $ai_provider = Miapg_Settings::get_setting('ai_provider', 'openai');
+                $category_id = Miapg_Settings::get_setting('miapg_post_category', 1);
+                $tags = explode(',', Miapg_Settings::get_setting('miapg_post_tags', ''));
+                $post_status = Miapg_Settings::get_setting('miapg_post_status', 'draft');
+                $word_count = Miapg_Settings::get_setting('miapg_post_word_count', '500');
+                $ai_provider = Miapg_Settings::get_setting('miapg_ai_provider', 'openai');
                 
                 // Generate post
                 $result = Miapg_Post_Generator::generate_and_publish_post(

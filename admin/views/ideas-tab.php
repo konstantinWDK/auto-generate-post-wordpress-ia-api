@@ -152,14 +152,22 @@ $ideas = get_posts(array(
                                     <input id="cb-select-<?php echo esc_attr($idea->ID); ?>" type="checkbox" name="idea_ids[]" value="<?php echo esc_attr($idea->ID); ?>" />
                                 </th>
                                 <td><strong><?php echo esc_html($idea->post_title); ?></strong></td>
-                                <td><?php echo esc_html(get_post_meta($idea->ID, '_miapg_idea_topic', true) ?: esc_html__('Not defined', 'miapg-post-generator')); ?></td>
+                                <td><?php 
+                                    $topic = get_post_meta($idea->ID, '_miapg_idea_topic', true);
+                                    if ($topic) {
+                                        echo esc_html(Miapg_Ideas_Generator::format_topic_text($topic));
+                                    } else {
+                                        echo esc_html__('Not defined', 'miapg-post-generator');
+                                    }
+                                ?></td>
                                 <td><?php echo esc_html(get_post_meta($idea->ID, '_miapg_idea_keyword', true) ?: esc_html__('Not defined', 'miapg-post-generator')); ?></td>
                                 <td><?php echo esc_html(get_the_date('', $idea->ID)); ?></td>
                                 <td>
                                     <div class="idea-actions">
                                         <a href="<?php echo esc_url(admin_url('post.php?post=' . $idea->ID . '&action=edit')); ?>" 
                                            class="button button-small idea-edit-btn" 
-                                           title="<?php esc_attr_e('Edit this idea', 'miapg-post-generator'); ?>">
+                                           title="<?php esc_attr_e('Edit this idea', 'miapg-post-generator'); ?>"
+                                           target="_blank">
                                             📝 <?php esc_html_e('Edit', 'miapg-post-generator'); ?>
                                         </a>
                                         <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID)); ?>" 
@@ -167,12 +175,11 @@ $ideas = get_posts(array(
                                            title="<?php esc_attr_e('Generate a post from this idea', 'miapg-post-generator'); ?>">
                                             🚀 <?php esc_html_e('Generate Post', 'miapg-post-generator'); ?>
                                         </a>
-                                        <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin.php?page=miapg-post-generator&tab=ideas&action=delete&idea_id=' . $idea->ID), 'delete_idea_' . $idea->ID)); ?>" 
-                                           class="button button-small button-secondary idea-delete-btn" 
-                                           onclick="return confirm('<?php echo esc_js(miapg_translate('Are you sure you want to delete this idea?')); ?>')"
-                                           title="<?php esc_attr_e('Delete this idea', 'miapg-post-generator'); ?>">
+                                        <button type="button" class="button button-small button-secondary idea-delete-btn" 
+                                               onclick="deleteIdea(<?php echo esc_js($idea->ID); ?>, '<?php echo esc_js($idea->post_title); ?>')"
+                                               title="<?php esc_attr_e('Delete this idea', 'miapg-post-generator'); ?>">
                                             🗑️ <?php esc_html_e('Delete', 'miapg-post-generator'); ?>
-                                        </a>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -191,5 +198,101 @@ $ideas = get_posts(array(
         <a href="<?php echo esc_url(admin_url('edit.php?post_type=miapg_post_idea')); ?>" class="button">
             <?php esc_html_e('View All Ideas', 'miapg-post-generator'); ?>
         </a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-ideas-manager')); ?>" class="button button-primary">
+            <?php esc_html_e('Advanced Ideas Manager', 'miapg-post-generator'); ?>
+        </a>
     </p>
 </div>
+
+<script>
+function deleteIdea(ideaId, ideaTitle) {
+    if (!confirm('<?php echo esc_js(__('Are you sure you want to delete this idea?', 'miapg-post-generator')); ?> "' + ideaTitle + '"')) {
+        return;
+    }
+    
+    jQuery.ajax({
+        url: miapgAdmin.ajaxurl,
+        type: 'POST',
+        data: {
+            action: 'delete_idea',
+            idea_id: ideaId,
+            nonce: miapgAdmin.nonce
+        },
+        success: function(response) {
+            if (response.success) {
+                alert(response.data.message);
+                location.reload(); // Refresh the page to show updated list
+            } else {
+                alert('Error: ' + response.data.message);
+            }
+        },
+        error: function() {
+            alert('<?php echo esc_js(__('Error deleting idea. Please try again.', 'miapg-post-generator')); ?>');
+        }
+    });
+}
+
+// Handle bulk actions
+jQuery(document).ready(function($) {
+    $('#doaction').click(function(e) {
+        e.preventDefault();
+        
+        var action = $('#bulk-action-selector-top').val();
+        var selectedIds = [];
+        
+        $('input[name="idea_ids[]"]:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+        
+        if (action === '-1') {
+            alert('<?php echo esc_js(__('Please select an action.', 'miapg-post-generator')); ?>');
+            return;
+        }
+        
+        if (selectedIds.length === 0) {
+            alert('<?php echo esc_js(__('Please select at least one idea.', 'miapg-post-generator')); ?>');
+            return;
+        }
+        
+        var keyword = '';
+        if (action === 'bulk_add_keyword') {
+            keyword = prompt('<?php echo esc_js(__('Enter keyword to add to selected ideas:', 'miapg-post-generator')); ?>');
+            if (!keyword) {
+                return;
+            }
+        }
+        
+        if (action === 'bulk_delete_selected' && !confirm('<?php echo esc_js(__('Are you sure you want to delete the selected ideas?', 'miapg-post-generator')); ?>')) {
+            return;
+        }
+        
+        $.ajax({
+            url: miapgAdmin.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'bulk_ideas_action',
+                bulk_action: action,
+                idea_ids: selectedIds,
+                keyword: keyword,
+                nonce: miapgAdmin.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.data.message);
+                }
+            },
+            error: function() {
+                alert('<?php echo esc_js(__('Error processing bulk action. Please try again.', 'miapg-post-generator')); ?>');
+            }
+        });
+    });
+    
+    // Select all checkbox
+    $('#cb-select-all-1').change(function() {
+        $('input[name="idea_ids[]"]').prop('checked', this.checked);
+    });
+});
+</script>

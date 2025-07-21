@@ -35,6 +35,7 @@ class Miapg_Admin_Ajax {
         add_action('wp_ajax_save_setting', array($this, 'save_setting'));
         add_action('wp_ajax_delete_idea', array($this, 'delete_idea'));
         add_action('wp_ajax_bulk_ideas_action', array($this, 'bulk_ideas_action'));
+        add_action('wp_ajax_save_idea_keyword', array($this, 'save_idea_keyword'));
     }
     
     /**
@@ -123,7 +124,7 @@ class Miapg_Admin_Ajax {
                         ?>
                         <tr>
                             <td><strong><?php echo esc_html($idea->post_title); ?></strong></td>
-                            <td><?php echo esc_html($topic); ?></td>
+                            <td><?php echo esc_html(Miapg_Ideas_Generator::format_topic_text($topic)); ?></td>
                             <td><?php echo $keyword ? esc_html($keyword) : '<em>' . esc_html__('Not defined', 'miapg-post-generator') . '</em>'; ?></td>
                             <td>
                                 <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID)); ?>" class="button button-small">
@@ -230,11 +231,6 @@ class Miapg_Admin_Ajax {
             wp_die(esc_html(__('Security check failed', 'miapg-post-generator')));
         }
         
-        // Check permissions
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html(__('Insufficient permissions', 'miapg-post-generator')));
-        }
-        
         $idea_id = isset($_POST['idea_id']) ? absint($_POST['idea_id']) : 0;
         
         if (empty($idea_id)) {
@@ -243,11 +239,18 @@ class Miapg_Admin_Ajax {
             ));
         }
         
-        // Get idea title for confirmation
+        // Get idea post and verify it exists
         $idea_post = get_post($idea_id);
         if (!$idea_post || $idea_post->post_type !== 'miapg_post_idea') {
             wp_send_json_error(array(
                 'message' => esc_html__('Idea not found', 'miapg-post-generator')
+            ));
+        }
+        
+        // Check permissions specifically for this post
+        if (!current_user_can('delete_miapg_post_idea', $idea_id)) {
+            wp_send_json_error(array(
+                'message' => esc_html__('You do not have permission to delete this idea', 'miapg-post-generator')
             ));
         }
         
@@ -324,11 +327,11 @@ class Miapg_Admin_Ajax {
                     $prompt = $idea_post->post_title;
                     
                     // Use default settings
-                    $category_id = Miapg_Settings::get_setting('auto_post_category', 1);
-                    $tags = explode(',', Miapg_Settings::get_setting('auto_post_tags', ''));
-                    $post_status = Miapg_Settings::get_setting('auto_post_status', 'draft');
-                    $word_count = Miapg_Settings::get_setting('auto_post_word_count', '500');
-                    $ai_provider = Miapg_Settings::get_setting('ai_provider', 'openai');
+                    $category_id = Miapg_Settings::get_setting('miapg_post_category', 1);
+                    $tags = explode(',', Miapg_Settings::get_setting('miapg_post_tags', ''));
+                    $post_status = Miapg_Settings::get_setting('miapg_post_status', 'draft');
+                    $word_count = Miapg_Settings::get_setting('miapg_post_word_count', '500');
+                    $ai_provider = Miapg_Settings::get_setting('miapg_ai_provider', 'openai');
                     
                     // Generate post
                     $result = Miapg_Post_Generator::generate_and_publish_post(
@@ -341,7 +344,8 @@ class Miapg_Admin_Ajax {
                         $ai_provider,
                         array(),
                         $idea_keyword,
-                        ''
+                        '',
+                        true // Mark as generated from idea
                     );
                     
                     if ($result && !is_wp_error($result)) {
@@ -408,10 +412,10 @@ class Miapg_Admin_Ajax {
     private function test_api_key($api_key, $provider) {
         if ($provider === 'deepseek') {
             $endpoint = 'https://api.deepseek.com/v1/chat/completions';
-            $model = 'deepseek-chat';
+            $model = Miapg_Settings::get_setting('miapg_deepseek_model', 'deepseek-chat');
         } else {
             $endpoint = 'https://api.openai.com/v1/chat/completions';
-            $model = 'gpt-3.5-turbo';
+            $model = Miapg_Settings::get_setting('miapg_openai_model', 'gpt-4');
         }
         
         $data = array(
@@ -449,5 +453,53 @@ class Miapg_Admin_Ajax {
         }
         
         return false;
+    }
+    
+    /**
+     * Save idea keyword via AJAX
+     */
+    public function save_idea_keyword() {
+        // Check nonce
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'miapg_nonce')) {
+            wp_die(esc_html(__('Security check failed', 'miapg-post-generator')));
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_miapg_post_ideas')) {
+            wp_send_json_error(array(
+                'message' => esc_html__('Insufficient permissions', 'miapg-post-generator')
+            ));
+        }
+        
+        $idea_id = isset($_POST['idea_id']) ? absint($_POST['idea_id']) : 0;
+        $keyword = isset($_POST['keyword']) ? sanitize_text_field(wp_unslash($_POST['keyword'])) : '';
+        
+        if (empty($idea_id)) {
+            wp_send_json_error(array(
+                'message' => esc_html__('Invalid idea ID', 'miapg-post-generator')
+            ));
+        }
+        
+        // Verify post exists and is correct type
+        $idea_post = get_post($idea_id);
+        if (!$idea_post || $idea_post->post_type !== 'miapg_post_idea') {
+            wp_send_json_error(array(
+                'message' => esc_html__('Idea not found', 'miapg-post-generator')
+            ));
+        }
+        
+        // Save keyword
+        $result = update_post_meta($idea_id, '_miapg_idea_keyword', $keyword);
+        
+        if ($result !== false) {
+            wp_send_json_success(array(
+                'message' => esc_html__('Keyword saved successfully', 'miapg-post-generator')
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => esc_html__('Error saving keyword', 'miapg-post-generator')
+            ));
+        }
     }
 }

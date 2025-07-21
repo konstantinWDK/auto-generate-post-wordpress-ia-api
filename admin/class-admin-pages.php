@@ -169,13 +169,13 @@ class Miapg_Admin_Pages {
             }
             
             // Get form data (nonce already verified above)
-            $prompt = !empty($_POST['custom_prompt']) ? sanitize_textarea_field(wp_unslash($_POST['custom_prompt'])) : Miapg_Settings::get_setting('auto_post_prompt', 'Write a post about a relevant topic.');
-            $category_id = !empty($_POST['category_custom']) ? absint(wp_unslash($_POST['category_custom'])) : Miapg_Settings::get_setting('auto_post_category', 1);
-            $tags = explode(',', Miapg_Settings::get_setting('auto_post_tags', ''));
-            $post_status = !empty($_POST['post_status_custom']) ? sanitize_text_field(wp_unslash($_POST['post_status_custom'])) : Miapg_Settings::get_setting('auto_post_status', 'publish');
-            $word_count = Miapg_Settings::get_setting('auto_post_word_count', '500');
+            $prompt = !empty($_POST['custom_prompt']) ? sanitize_textarea_field(wp_unslash($_POST['custom_prompt'])) : Miapg_Settings::get_setting('miapg_post_prompt', 'Write a post about a relevant topic.');
+            $category_id = !empty($_POST['category_custom']) ? absint(wp_unslash($_POST['category_custom'])) : Miapg_Settings::get_setting('miapg_post_category', 1);
+            $tags = explode(',', Miapg_Settings::get_setting('miapg_post_tags', ''));
+            $post_status = !empty($_POST['post_status_custom']) ? sanitize_text_field(wp_unslash($_POST['post_status_custom'])) : Miapg_Settings::get_setting('miapg_post_status', 'publish');
+            $word_count = Miapg_Settings::get_setting('miapg_post_word_count', '500');
             $post_date = isset($_POST['post_date']) ? sanitize_text_field(wp_unslash($_POST['post_date'])) : current_time('mysql');
-            $ai_provider = !empty($_POST['ai_provider_custom']) ? sanitize_text_field(wp_unslash($_POST['ai_provider_custom'])) : Miapg_Settings::get_setting('ai_provider', 'openai');
+            $ai_provider = !empty($_POST['ai_provider_custom']) ? sanitize_text_field(wp_unslash($_POST['ai_provider_custom'])) : Miapg_Settings::get_setting('miapg_ai_provider', 'openai');
             $keyword = isset($_POST['keyword']) ? sanitize_text_field(wp_unslash($_POST['keyword'])) : '';
             $source_article = isset($_POST['source_article']) ? sanitize_textarea_field(wp_unslash($_POST['source_article'])) : '';
             

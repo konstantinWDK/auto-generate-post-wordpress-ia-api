@@ -103,12 +103,28 @@ class Miapg_Scheduler {
      * Auto generate post
      */
     public function auto_generate_post() {
-        // First try to use saved ideas
+        // Log scheduler execution for debugging
+        if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            error_log('MIAPG: Auto post generation started via scheduler');
+        }
+        
+        // First try to use saved ideas with better query
         $available_ideas = get_posts(array(
             'post_type' => 'miapg_post_idea',
             'numberposts' => 1,
             'post_status' => 'publish',
-            'orderby' => 'rand'
+            'orderby' => 'rand',
+            'meta_query' => array(
+                array(
+                    'key' => '_miapg_idea_status',
+                    'value' => 'available',
+                    'compare' => '='
+                )
+            ),
+            'no_found_rows' => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false
         ));
         
         if (!empty($available_ideas)) {
@@ -132,12 +148,24 @@ class Miapg_Scheduler {
                 $word_count,
                 $ai_provider,
                 array(),
-                $keyword
+                $keyword,
+                '',
+                true // Mark as generated from idea
             );
             
-            // Optionally delete used idea
+            // Handle used idea
             if (Miapg_Settings::get_setting('miapg_delete_used_ideas', 'no') === 'yes') {
                 wp_delete_post($idea->ID, true);
+            } else {
+                // Mark idea as used
+                update_post_meta($idea->ID, '_miapg_idea_status', 'used');
+                update_post_meta($idea->ID, '_miapg_idea_used_date', current_time('mysql'));
+            }
+            
+            // Log result
+            if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                error_log("MIAPG: Scheduler generated post from idea. Result: $result");
             }
         } else {
             // Fallback to topic list

@@ -63,16 +63,30 @@ class Miapg_Post_Generator {
         if (!$ai_settings['api_key']) {
             return sprintf(
                 // translators: %s is the AI provider name
-                __('No API key provided for %s', 'miapg-post-generator'), 
-                $ai_provider
+                __('No API key configured for %s. Please check your settings.', 'miapg-post-generator'), 
+                ucfirst($ai_provider)
             );
+        }
+        
+        // Validate basic parameters
+        if (empty($prompt)) {
+            return __('No topic or prompt provided for content generation.', 'miapg-post-generator');
+        }
+        
+        if ($word_count < 50 || $word_count > 5000) {
+            return __('Word count must be between 50 and 5000 words.', 'miapg-post-generator');
         }
         
         // Generate content
         $content_result = self::generate_content($prompt, $word_count, $keyword, $source_article, $ai_settings);
         
         if (is_wp_error($content_result)) {
-            return $content_result->get_error_message();
+            // Log the error for debugging
+            if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                error_log('MIAPG: Content generation failed: ' . $content_result->get_error_message());
+            }
+            return __('Content generation failed: ', 'miapg-post-generator') . $content_result->get_error_message();
         }
         
         // Generate title
@@ -128,7 +142,7 @@ class Miapg_Post_Generator {
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are an SEO expert who generates blog content with HTML formatting.', 'miapg-post-generator') . ' ' . $language_instructions
+                    'content' => __('You are an experienced content writer who creates engaging, natural-sounding blog posts. Write in a conversational yet informative style that connects with readers. Avoid overly promotional language and focus on providing genuine value. Use HTML formatting when specified.', 'miapg-post-generator') . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',
@@ -155,7 +169,7 @@ class Miapg_Post_Generator {
         if (is_wp_error($response)) {
             return new WP_Error('api_error', sprintf(
                 // translators: %s: error message
-                __('Error in OpenAI request: %s', 'miapg-post-generator'),
+                __('Error in AI API request: %s', 'miapg-post-generator'),
                 $response->get_error_message()
             ));
         }
@@ -164,12 +178,23 @@ class Miapg_Post_Generator {
         $result = json_decode($body, true);
         
         if (!isset($result['choices'][0]['message']['content'])) {
-            // Log error only if WordPress debug logging is enabled
+            // Log detailed error information
             if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                 // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-                error_log('MIAPG: No content generated from API. Response: ' . wp_json_encode($result));
+                error_log('MIAPG: No content generated from API. Full response: ' . wp_json_encode($result));
+                error_log('MIAPG: API endpoint used: ' . $ai_settings['endpoint']);
+                error_log('MIAPG: Model used: ' . $ai_settings['model']);
             }
-            return new WP_Error('no_content', __('No content generated from AI provider. Please check your API settings.', 'miapg-post-generator'));
+            
+            // Check if there's an error message from the API
+            if (isset($result['error']['message'])) {
+                return new WP_Error('api_error', sprintf(
+                    __('AI API Error: %s', 'miapg-post-generator'), 
+                    $result['error']['message']
+                ));
+            }
+            
+            return new WP_Error('no_content', __('No content generated from AI provider. Please check your API settings and try again.', 'miapg-post-generator'));
         }
         
         return $result['choices'][0]['message']['content'];
@@ -209,7 +234,7 @@ class Miapg_Post_Generator {
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => __('You are an SEO expert who generates attractive titles without quotes.', 'miapg-post-generator') . ' ' . $language_instructions
+                    'content' => __('You are a creative copywriter who crafts compelling, click-worthy titles that feel natural and engaging. Create titles that spark curiosity without being clickbait. Never use quotes around the title.', 'miapg-post-generator') . ' ' . $language_instructions
                 ),
                 array(
                     'role' => 'user',
@@ -257,7 +282,7 @@ class Miapg_Post_Generator {
         
         $seo_prompt = sprintf(
             // translators: %1$s: writing style, %2$s: tone, %3$s: target audience
-            __('Act as an SEO and content writing expert with %1$s style and %2$s tone. Target audience: %3$s.', 'miapg-post-generator'),
+            __('Write naturally as an expert in the field, using a %1$s style with a %2$s tone. Your audience consists of %3$s. Focus on being helpful and authentic rather than promotional. Use personal insights, real examples, and avoid corporate jargon.', 'miapg-post-generator'),
             $content_settings['writing_style'],
             $content_settings['tone'],
             $content_settings['target_audience']
@@ -268,7 +293,7 @@ class Miapg_Post_Generator {
         if (!empty($keyword)) {
             $seo_prompt .= ' ' . sprintf(
                 // translators: %s: keyword
-                __('IMPORTANT: Focus on the main keyword "%s" and use it strategically throughout the content for SEO.', 'miapg-post-generator'),
+                __('Naturally incorporate the topic "%s" throughout your content where it flows organically. Don\'t force it - let it appear naturally in context.', 'miapg-post-generator'),
                 $keyword
             );
         }
@@ -303,27 +328,27 @@ class Miapg_Post_Generator {
         $seo_prompt .= ' ' . __('DO NOT use: div, span, class, id, style, table, img, script, or any complex HTML tags.', 'miapg-post-generator');
         
         // Add content structure
-        $seo_prompt .= ' ' . __('Structure the content as follows:', 'miapg-post-generator');
-        $seo_prompt .= ' 1. ' . __('Introduce the topic with an attractive paragraph.', 'miapg-post-generator');
-        $seo_prompt .= ' 2. ' . __('Use <h2> headings for main sections.', 'miapg-post-generator');
-        $seo_prompt .= ' 3. ' . __('Use <h3> headings for subsections when necessary.', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('Content structure guidelines:', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('Start with an engaging introduction that hooks the reader.', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('Break content into logical sections with <h2> headings that are descriptive and interesting.', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('Use <h3> subheadings to organize detailed points within sections.', 'miapg-post-generator');
         
         if ($content_settings['include_lists'] === 'yes') {
-            $seo_prompt .= ' 4. ' . __('Include at least one bullet list (<ul><li>) or numbered list (<ol><li>).', 'miapg-post-generator');
+            $seo_prompt .= ' ' . __('Include practical lists where they add value (use <ul><li> for bullets or <ol><li> for numbered steps).', 'miapg-post-generator');
         }
         
-        $seo_prompt .= ' 5. ' . __('Use <strong> for bold and <em> for italic when appropriate.', 'miapg-post-generator');
-        $seo_prompt .= ' 6. ' . __('Conclude with a summary paragraph.', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('Use <strong> for emphasis and <em> for subtle highlighting - but sparingly for maximum impact.', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('End with a thoughtful conclusion that ties everything together and gives readers a clear takeaway.', 'miapg-post-generator');
         
         if ($content_settings['include_faq'] === 'yes') {
-            $seo_prompt .= ' 7. ' . __('Add an FAQ section with 3 questions and answers related to the topic at the end of the article.', 'miapg-post-generator');
+            $seo_prompt .= ' ' . __('Consider adding a FAQ section if it naturally fits, with 3 genuine questions readers might have.', 'miapg-post-generator');
         }
         
         if ($content_settings['custom_instructions']) {
-            $seo_prompt .= ' ' . __('Additional instructions:', 'miapg-post-generator') . ' ' . $content_settings['custom_instructions'];
+            $seo_prompt .= ' ' . __('Special considerations:', 'miapg-post-generator') . ' ' . $content_settings['custom_instructions'];
         }
         
-        $seo_prompt .= ' ' . __('Make sure the content is informative, engaging and SEO optimized. Use ONLY the basic HTML tags mentioned. DO NOT include a title for the article.', 'miapg-post-generator');
+        $seo_prompt .= ' ' . __('Important: Write like a knowledgeable friend sharing insights, not like an AI or corporate blog. Be conversational but professional. Vary your sentence length and structure. Use ONLY the HTML tags specified above. Never include a title at the beginning.', 'miapg-post-generator');
         
         return $seo_prompt;
     }
@@ -332,32 +357,80 @@ class Miapg_Post_Generator {
      * Create WordPress post
      */
     private static function create_post($title, $content, $status, $date, $category_id, $tags) {
+        // Sanitize and validate inputs
+        $title = wp_strip_all_tags(trim($title));
+        if (empty($title)) {
+            return new WP_Error('invalid_title', __('Post title cannot be empty', 'miapg-post-generator'));
+        }
+        
+        // Ensure valid post status
+        $valid_statuses = array('publish', 'draft', 'future', 'private');
+        if (!in_array($status, $valid_statuses)) {
+            $status = 'draft';
+        }
+        
+        // Validate and format date
+        if ($status === 'future' && strtotime($date) <= current_time('timestamp')) {
+            $date = date('Y-m-d H:i:s', current_time('timestamp') + 3600); // Set 1 hour from now
+        }
+        
+        // Prepare categories array
+        $categories = array();
+        if ($category_id > 0 && get_category($category_id)) {
+            $categories[] = absint($category_id);
+        } else {
+            $categories[] = absint(get_option('default_category', 1));
+        }
+        
+        // Clean tags array
+        $clean_tags = array();
+        if (is_array($tags)) {
+            foreach ($tags as $tag) {
+                $tag = trim($tag);
+                if (!empty($tag)) {
+                    $clean_tags[] = sanitize_text_field($tag);
+                }
+            }
+        }
+        
         $post_data = array(
             'post_title' => $title,
             'post_content' => $content,
             'post_status' => $status,
             'post_author' => get_current_user_id(),
-            'post_category' => array($category_id),
-            'tags_input' => $tags,
+            'post_category' => $categories,
+            'tags_input' => $clean_tags,
             'post_date' => $date,
+            'post_date_gmt' => get_gmt_from_date($date),
+            'post_type' => 'post',
+            'meta_input' => array(
+                '_miapg_generated' => true,
+                '_miapg_generation_date' => current_time('mysql'),
+                '_miapg_word_count' => str_word_count(wp_strip_all_tags($content))
+            )
         );
         
-        // Temporarily disable content filters
-        remove_filter('content_save_pre', 'wp_filter_post_kses');
-        remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-        
-        $post_id = wp_insert_post($post_data);
-        
-        // Reactivate content filters
-        add_filter('content_save_pre', 'wp_filter_post_kses');
-        add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+        // Insert post with error checking
+        $post_id = wp_insert_post($post_data, true);
         
         if (is_wp_error($post_id)) {
+            // Log error for debugging
+            if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                error_log('MIAPG: Post creation failed: ' . $post_id->get_error_message());
+            }
+            
             return new WP_Error('post_creation_failed', sprintf(
                 // translators: %s: error message
                 __('Error creating post: %s', 'miapg-post-generator'),
                 $post_id->get_error_message()
             ));
+        }
+        
+        // Log successful creation
+        if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            error_log("MIAPG: Successfully created post ID: $post_id with title: $title");
         }
         
         return $post_id;

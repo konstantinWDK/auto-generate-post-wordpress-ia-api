@@ -191,12 +191,40 @@ class Miapg_Settings {
      * Get AI parameters
      */
     public static function get_ai_parameters() {
+        // Get raw values
+        $temperature = floatval(self::get_setting('miapg_ai_temperature', 0.7));
+        $max_tokens = intval(self::get_setting('miapg_ai_max_tokens', 2000));
+        $top_p = floatval(self::get_setting('miapg_ai_top_p', 0.95));
+        $frequency_penalty = floatval(self::get_setting('miapg_ai_frequency_penalty', 0.0));
+        $presence_penalty = floatval(self::get_setting('miapg_ai_presence_penalty', 0.0));
+        
+        // Store original values for comparison
+        $original_top_p = $top_p;
+        
+        // Validate and clamp values to API requirements
+        $temperature = max(0.0, min(2.0, $temperature));
+        $max_tokens = max(1, min(4096, $max_tokens));
+        $top_p = max(0.01, min(0.99, $top_p)); // Valid range (0, 1) exclusive
+        $frequency_penalty = max(-2.0, min(2.0, $frequency_penalty));
+        $presence_penalty = max(-2.0, min(2.0, $presence_penalty));
+        
+        // Auto-fix invalid top_p values in database
+        if ($original_top_p !== $top_p && ($original_top_p <= 0 || $original_top_p >= 1.0)) {
+            self::update_setting('miapg_ai_top_p', $top_p);
+            
+            // Log the correction
+            if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                error_log("MIAPG: Auto-corrected invalid top_p value from {$original_top_p} to {$top_p}");
+            }
+        }
+        
         return array(
-            'temperature' => floatval(self::get_setting('miapg_ai_temperature', 0.7)),
-            'max_tokens' => intval(self::get_setting('miapg_ai_max_tokens', 2000)),
-            'top_p' => floatval(self::get_setting('miapg_ai_top_p', 1.0)),
-            'frequency_penalty' => floatval(self::get_setting('miapg_ai_frequency_penalty', 0.0)),
-            'presence_penalty' => floatval(self::get_setting('miapg_ai_presence_penalty', 0.0)),
+            'temperature' => $temperature,
+            'max_tokens' => $max_tokens,
+            'top_p' => $top_p,
+            'frequency_penalty' => $frequency_penalty,
+            'presence_penalty' => $presence_penalty,
         );
     }
     
@@ -227,9 +255,9 @@ class Miapg_Settings {
         }
         
         $instructions = array(
-            'es' => 'Genera el contenido en español. Utiliza un lenguaje natural y fluido apropiado para hispanohablantes.',
-            'en' => 'Generate content in English. Use natural and fluent language appropriate for English speakers.',
-            'ru' => 'Создайте контент на русском языке. Используйте естественный и плавный язык, подходящий для русскоязычных пользователей.'
+            'es' => 'Escribe en español de forma natural y conversacional. Evita frases robóticas o demasiado formales. Usa expresiones cotidianas y varía la estructura de tus oraciones. Suena como un experto apasionado compartiendo conocimientos.',
+            'en' => 'Write in natural, conversational English. Avoid robotic or overly formal phrases. Use everyday expressions and vary your sentence structure. Sound like a passionate expert sharing knowledge.',
+            'ru' => 'Пишите на естественном, разговорном русском языке. Избегайте роботических или слишком формальных фраз. Используйте повседневные выражения и варьируйте структуру предложений. Звучите как увлечённый эксперт, делящийся знаниями.'
         );
         
         return isset($instructions[$language]) ? $instructions[$language] : $instructions['es'];

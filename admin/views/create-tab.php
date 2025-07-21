@@ -63,7 +63,7 @@ if ($idea_id > 0) {
                         <option value=""><?php esc_html_e('Select Category', 'miapg-post-generator'); ?></option>
                         <?php foreach ($categories as $category): ?>
                             <option value="<?php echo esc_attr($category->term_id); ?>" 
-                                    <?php selected(Miapg_Settings::get_setting('auto_post_category'), $category->term_id); ?>>
+                                    <?php selected(Miapg_Settings::get_setting('miapg_post_category'), $category->term_id); ?>>
                                 <?php echo esc_html($category->name); ?>
                             </option>
                         <?php endforeach; ?>
@@ -75,7 +75,7 @@ if ($idea_id > 0) {
                 <td>
                     <input type="text" name="post_tags" style="width: 100%;" 
                            placeholder="<?php esc_attr_e('tag1, tag2, tag3', 'miapg-post-generator'); ?>"
-                           value="<?php echo esc_attr(Miapg_Settings::get_setting('auto_post_tags')); ?>" />
+                           value="<?php echo esc_attr(Miapg_Settings::get_setting('miapg_post_tags')); ?>" />
                     <p class="description"><?php esc_html_e('Separate tags with commas', 'miapg-post-generator'); ?></p>
                 </td>
             </tr>
@@ -83,10 +83,10 @@ if ($idea_id > 0) {
                 <th scope="row"><?php esc_html_e('Post Status', 'miapg-post-generator'); ?></th>
                 <td>
                     <select name="post_status_custom">
-                        <option value="publish" <?php selected(Miapg_Settings::get_setting('auto_post_status'), 'publish'); ?>>
+                        <option value="publish" <?php selected(Miapg_Settings::get_setting('miapg_post_status'), 'publish'); ?>>
                             <?php esc_html_e('Publish', 'miapg-post-generator'); ?>
                         </option>
-                        <option value="draft" <?php selected(Miapg_Settings::get_setting('auto_post_status'), 'draft'); ?>>
+                        <option value="draft" <?php selected(Miapg_Settings::get_setting('miapg_post_status'), 'draft'); ?>>
                             <?php esc_html_e('Draft', 'miapg-post-generator'); ?>
                         </option>
                     </select>
@@ -97,16 +97,6 @@ if ($idea_id > 0) {
                 <td>
                     <input type="datetime-local" name="post_date" />
                     <p class="description"><?php esc_html_e('Leave empty to publish immediately', 'miapg-post-generator'); ?></p>
-                </td>
-            </tr>
-            <tr valign="top">
-                <th scope="row"><?php esc_html_e('AI Provider', 'miapg-post-generator'); ?></th>
-                <td>
-                    <select name="ai_provider_custom">
-                        <option value="openai" <?php selected(Miapg_Settings::get_setting('ai_provider'), 'openai'); ?>>OpenAI</option>
-                        <option value="deepseek" <?php selected(Miapg_Settings::get_setting('ai_provider'), 'deepseek'); ?>>DeepSeek</option>
-                    </select>
-                    <p class="description"><?php esc_html_e('AI provider to use for this post', 'miapg-post-generator'); ?></p>
                 </td>
             </tr>
         </table>

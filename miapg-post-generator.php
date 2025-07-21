@@ -137,6 +137,9 @@ class Miapg_Main {
             Miapg_Post_Ideas_CPT::register_post_type_static();
         }
         
+        // Add custom capabilities to administrator role
+        $this->add_custom_capabilities();
+        
         // Flush rewrite rules
         flush_rewrite_rules();
         
@@ -166,6 +169,9 @@ class Miapg_Main {
      * Plugin uninstall
      */
     public static function uninstall() {
+        // Remove custom capabilities
+        self::remove_custom_capabilities();
+        
         // Remove options
         self::remove_options();
         
@@ -220,11 +226,11 @@ class Miapg_Main {
             'miapg_include_lists' => 'yes',
             'miapg_seo_focus' => 'medium',
             'miapg_title_max_length' => 60,
-            'miapg_ai_temperature' => 0.7,
-            'miapg_ai_max_tokens' => 2000,
-            'miapg_ai_top_p' => 1.0,
-            'miapg_ai_frequency_penalty' => 0.0,
-            'miapg_ai_presence_penalty' => 0.0,
+            'miapg_ai_temperature' => 0.8,
+            'miapg_ai_max_tokens' => 2500,
+            'miapg_ai_top_p' => 0.9,
+            'miapg_ai_frequency_penalty' => 0.3,
+            'miapg_ai_presence_penalty' => 0.2,
             'miapg_scheduling_enabled' => 'no',
             'miapg_posting_frequency' => 'weekly',
             'miapg_posting_time' => '09:00',
@@ -300,6 +306,64 @@ class Miapg_Main {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id NOT IN (SELECT id FROM {$wpdb->posts})");
+    }
+    
+    /**
+     * Add custom capabilities to administrator role
+     */
+    private function add_custom_capabilities() {
+        $role = get_role('administrator');
+        if ($role) {
+            $capabilities = array(
+                'edit_miapg_post_idea',
+                'read_miapg_post_idea',
+                'delete_miapg_post_idea',
+                'edit_miapg_post_ideas',
+                'edit_others_miapg_post_ideas',
+                'publish_miapg_post_ideas',
+                'read_private_miapg_post_ideas',
+                'delete_miapg_post_ideas',
+                'delete_private_miapg_post_ideas',
+                'delete_published_miapg_post_ideas',
+                'delete_others_miapg_post_ideas',
+                'edit_private_miapg_post_ideas',
+                'edit_published_miapg_post_ideas',
+                'create_miapg_post_ideas',
+            );
+            
+            foreach ($capabilities as $cap) {
+                $role->add_cap($cap);
+            }
+        }
+    }
+    
+    /**
+     * Remove custom capabilities from roles
+     */
+    private static function remove_custom_capabilities() {
+        $role = get_role('administrator');
+        if ($role) {
+            $capabilities = array(
+                'edit_miapg_post_idea',
+                'read_miapg_post_idea',
+                'delete_miapg_post_idea',
+                'edit_miapg_post_ideas',
+                'edit_others_miapg_post_ideas',
+                'publish_miapg_post_ideas',
+                'read_private_miapg_post_ideas',
+                'delete_miapg_post_ideas',
+                'delete_private_miapg_post_ideas',
+                'delete_published_miapg_post_ideas',
+                'delete_others_miapg_post_ideas',
+                'edit_private_miapg_post_ideas',
+                'edit_published_miapg_post_ideas',
+                'create_miapg_post_ideas',
+            );
+            
+            foreach ($capabilities as $cap) {
+                $role->remove_cap($cap);
+            }
+        }
     }
     
     /**

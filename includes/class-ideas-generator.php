@@ -218,24 +218,40 @@ class Miapg_Ideas_Generator {
                 continue;
             }
             
-            // Create idea post
+            // Create idea post with proper WordPress structure
             $post_data = array(
-                'post_title' => $idea,
+                'post_title' => wp_strip_all_tags($idea),
                 'post_content' => '',
                 'post_status' => 'publish',
                 'post_type' => 'miapg_post_idea',
                 'post_author' => get_current_user_id(),
+                'post_date' => current_time('mysql'),
+                'post_date_gmt' => current_time('mysql', 1),
+                'meta_input' => array(
+                    '_miapg_idea_topic' => sanitize_text_field($topic),
+                    '_miapg_idea_content_type' => sanitize_text_field($content_type),
+                    '_miapg_idea_generated_date' => $current_time,
+                    '_miapg_idea_status' => 'available',
+                )
             );
             
-            $post_id = wp_insert_post($post_data);
+            $post_id = wp_insert_post($post_data, true);
             
-            if (!is_wp_error($post_id)) {
-                // Save meta data
-                update_post_meta($post_id, '_miapg_idea_topic', $topic);
-                update_post_meta($post_id, '_miapg_idea_content_type', $content_type);
-                update_post_meta($post_id, '_miapg_idea_generated_date', $current_time);
-                
+            if (!is_wp_error($post_id) && $post_id > 0) {
                 $saved_ideas[] = $post_id;
+                
+                // Log successful creation for debugging
+                if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                    error_log("MIAPG: Successfully created idea post ID: $post_id with title: $idea");
+                }
+            } else {
+                // Log error for debugging
+                if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    $error_message = is_wp_error($post_id) ? $post_id->get_error_message() : 'Unknown error';
+                    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                    error_log("MIAPG: Failed to create idea post. Error: $error_message");
+                }
             }
         }
         
@@ -245,7 +261,8 @@ class Miapg_Ideas_Generator {
                 __('%d post ideas have been generated and saved.', 'miapg-post-generator'),
                 count($saved_ideas)
             );
-            $message .= ' <a href="' . admin_url('edit.php?post_type=miapg_post_idea') . '" class="button button-secondary">' . __('View Saved Ideas', 'miapg-post-generator') . '</a>';
+            $message .= ' <a href="' . admin_url('admin.php?page=miapg-ideas-manager') . '" class="button button-primary">' . __('Manage Ideas', 'miapg-post-generator') . '</a>';
+            $message .= ' <a href="' . admin_url('edit.php?post_type=miapg_post_idea') . '" class="button button-secondary" style="margin-left: 5px;">' . __('WordPress List', 'miapg-post-generator') . '</a>';
             return $message;
         }
         
@@ -276,25 +293,41 @@ class Miapg_Ideas_Generator {
                 continue;
             }
             
-            // Create idea post
+            // Create idea post with proper WordPress structure
             $post_data = array(
-                'post_title' => $idea,
+                'post_title' => wp_strip_all_tags($idea),
                 'post_content' => '',
                 'post_status' => 'publish',
                 'post_type' => 'miapg_post_idea',
                 'post_author' => get_current_user_id(),
+                'post_date' => current_time('mysql'),
+                'post_date_gmt' => current_time('mysql', 1),
+                'meta_input' => array(
+                    '_miapg_idea_topic' => __('Based on reference article', 'miapg-post-generator'),
+                    '_miapg_idea_content_type' => sanitize_text_field($approach),
+                    '_miapg_idea_generated_date' => $current_time,
+                    '_miapg_idea_source_article' => wp_trim_words(sanitize_textarea_field($article), 50),
+                    '_miapg_idea_status' => 'available',
+                )
             );
             
-            $post_id = wp_insert_post($post_data);
+            $post_id = wp_insert_post($post_data, true);
             
-            if (!is_wp_error($post_id)) {
-                // Save meta data
-                update_post_meta($post_id, '_miapg_idea_topic', __('Based on reference article', 'miapg-post-generator'));
-                update_post_meta($post_id, '_miapg_idea_content_type', $approach);
-                update_post_meta($post_id, '_miapg_idea_generated_date', $current_time);
-                update_post_meta($post_id, '_miapg_idea_source_article', wp_trim_words($article, 50));
-                
+            if (!is_wp_error($post_id) && $post_id > 0) {
                 $saved_ideas[] = $post_id;
+                
+                // Log successful creation for debugging
+                if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                    error_log("MIAPG: Successfully created article-based idea post ID: $post_id with title: $idea");
+                }
+            } else {
+                // Log error for debugging
+                if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                    $error_message = is_wp_error($post_id) ? $post_id->get_error_message() : 'Unknown error';
+                    // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                    error_log("MIAPG: Failed to create article-based idea post. Error: $error_message");
+                }
             }
         }
         
@@ -304,7 +337,8 @@ class Miapg_Ideas_Generator {
                 __('%d ideas have been generated and saved based on the reference article.', 'miapg-post-generator'),
                 count($saved_ideas)
             );
-            $message .= ' <a href="' . admin_url('edit.php?post_type=miapg_post_idea') . '" class="button button-secondary">' . __('View Saved Ideas', 'miapg-post-generator') . '</a>';
+            $message .= ' <a href="' . admin_url('admin.php?page=miapg-ideas-manager') . '" class="button button-primary">' . __('Manage Ideas', 'miapg-post-generator') . '</a>';
+            $message .= ' <a href="' . admin_url('edit.php?post_type=miapg_post_idea') . '" class="button button-secondary" style="margin-left: 5px;">' . __('WordPress List', 'miapg-post-generator') . '</a>';
             return $message;
         }
         
@@ -354,5 +388,60 @@ class Miapg_Ideas_Generator {
         wp_cache_set($cache_key, $stats, 'miapg_post_generator', 300);
         
         return $stats;
+    }
+    
+    /**
+     * Format topic text - separate words that are joined together
+     */
+    public static function format_topic_text($text) {
+        if (empty($text)) {
+            return $text;
+        }
+        
+        // Store original for debugging
+        $original = $text;
+        
+        // Method 1: Add space before uppercase letters (camelCase handling)
+        $formatted = preg_replace('/([a-z\d])([A-Z])/', '$1 $2', $text);
+        
+        // Method 2: Add space before accented uppercase letters
+        $formatted = preg_replace('/([a-záéíóúñü\d])([ÁÉÍÓÚÑÜ])/', '$1 $2', $formatted);
+        
+        // Method 3: Add space between letters and numbers
+        $formatted = preg_replace('/([a-zA-ZáéíóúñüÁÉÍÓÚÑÜ])(\d)/', '$1 $2', $formatted);
+        $formatted = preg_replace('/(\d)([a-zA-ZáéíóúñüÁÉÍÓÚÑÜ])/', '$1 $2', $formatted);
+        
+        // Clean up multiple spaces
+        $formatted = preg_replace('/\s+/', ' ', $formatted);
+        
+        // Trim and return
+        $result = trim($formatted);
+        
+        // If no change was made, try a more aggressive approach for all-lowercase strings
+        if ($result === $original && strlen($original) > 15 && ctype_lower(str_replace(['á','é','í','ó','ú','ñ','ü'], 'a', $original))) {
+            // Split long lowercase strings at likely word boundaries
+            // Common Spanish word patterns
+            $patterns = array(
+                '/([a-záéíóúñü]{5,})(en|de|para|con|por|sobre|entre|bajo|tras)([a-záéíóúñü]{3,})/' => '$1 $2 $3',
+                '/([a-záéíóúñü]{4,})(ment|ción|sión|idad|ismo)([a-záéíóúñü]{4,})/' => '$1$2 $3',
+                '/([a-záéíóúñü]{6,})([a-záéíóúñü]{6,})/' => '$1 $2',
+            );
+            
+            foreach ($patterns as $pattern => $replacement) {
+                $temp = preg_replace($pattern, $replacement, $result);
+                if ($temp !== $result) {
+                    $result = $temp;
+                    break;
+                }
+            }
+        }
+        
+        // Debug logging if needed
+        if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG && $original !== $result) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            error_log("MIAPG: Topic formatted from '$original' to '$result'");
+        }
+        
+        return $result;
     }
 }
