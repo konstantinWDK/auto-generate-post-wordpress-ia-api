@@ -1,0 +1,133 @@
+/**
+ * Post Ideas CPT Styles
+ * Custom styles for the miapg_post_idea custom post type admin pages
+ */
+
+/* CPT List Table Columns */
+.post-type-miapg_post_idea .column-actions {
+    width: 180px;
+}
+
+.post-type-miapg_post_idea .column-keyword {
+    width: 150px;
+}
+
+.post-type-miapg_post_idea .column-content_type {
+    width: 120px;
+}
+
+.post-type-miapg_post_idea .column-generated_date {
+    width: 120px;
+}
+
+/* Recent Ideas List */
+.recent-ideas-list {
+    margin-top: 20px;
+}
+
+.recent-ideas-list table {
+    margin-top: 10px;
+}
+
+.recent-ideas-list td {
+    vertical-align: middle;
+}
+
+/* Button Styles */
+.button.button-small {
+    font-size: 11px;
+    height: auto;
+    line-height: 1.5;
+    padding: 2px 6px;
+    margin-right: 3px;
+}
+
+.idea-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+}
+
+.idea-actions .button {
+    white-space: nowrap;
+    margin: 0;
+}
+
+.ideas-list table {
+    margin-top: 20px;
+}
+
+.ideas-list .button-small {
+    font-size: 11px;
+    padding: 3px 8px;
+    height: auto;
+    line-height: 1.4;
+}
+
+/* Ideas Count */
+.ideas-count {
+    font-weight: bold;
+    color: #2271b1;
+}
+
+/* Form Styles */
+#ideas-generator-form, #ideas-from-article-form {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.ideas-generator h3, .ideas-from-article h3 {
+    margin-top: 0;
+    color: #1d2327;
+}
+
+/* Message Styles */
+.apg-message {
+    padding: 12px;
+    margin: 20px 0;
+    border-radius: 4px;
+    border-left: 4px solid #0073aa;
+}
+
+.apg-message.success {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+    color: #155724;
+}
+
+.apg-message.error {
+    background-color: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+/* Delete All Ideas Button */
+.delete-all-ideas {
+    transition: all 0.3s ease;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: 1px solid #d63638;
+    background: #fff;
+    display: inline-block;
+}
+
+.delete-all-ideas:hover {
+    background-color: #d63638;
+    color: #fff !important;
+    text-decoration: none;
+}
+
+/* Bulk Actions Options */
+.bulk-actions select option[value="bulk_delete_ideas"] {
+    color: #d63638;
+    font-weight: bold;
+}
+
+.bulk-actions select option[value="generate_posts"] {
+    color: #2271b1;
+    font-weight: bold;
+}

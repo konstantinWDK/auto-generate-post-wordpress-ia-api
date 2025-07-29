@@ -222,7 +222,24 @@ class Miapg_Admin_Pages {
             
             if (wp_delete_post($delete_id, true)) {
                 echo '<div class="notice notice-success"><p>' . esc_html(miapg_translate('Idea deleted successfully.')) . '</p></div>';
-                echo '<script>window.history.replaceState({}, document.title, "' . esc_url(admin_url('admin.php?page=miapg-post-generator&tab=ideas')) . '");</script>';
+                
+                // Enqueue page redirecter script
+                wp_enqueue_script(
+                    'miapg-page-redirecter',
+                    MIAPG_PLUGIN_URL . 'assets/js/page-redirecter.js',
+                    array(),
+                    MIAPG_VERSION,
+                    true
+                );
+                
+                // Localize script with redirect URL
+                wp_localize_script(
+                    'miapg-page-redirecter',
+                    'miapgPageRedirect',
+                    array(
+                        'redirectUrl' => admin_url('admin.php?page=miapg-post-generator&tab=ideas')
+                    )
+                );
             } else {
                 echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Error deleting idea.')) . '</p></div>';
             }

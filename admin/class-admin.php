@@ -212,36 +212,6 @@ class Miapg_Admin {
             </div>
         </div>
         
-        <script>
-        jQuery(document).ready(function($) {
-            $('.save-keyword-btn').click(function() {
-                var ideaId = $(this).data('idea-id');
-                var keyword = $(this).siblings('.idea-keyword-input').val();
-                var button = $(this);
-                
-                $.ajax({
-                    url: miapgAdmin.ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'save_idea_keyword',
-                        idea_id: ideaId,
-                        keyword: keyword,
-                        nonce: miapgAdmin.nonce
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            button.html('✅');
-                            setTimeout(function() {
-                                button.html('💾');
-                            }, 2000);
-                        } else {
-                            alert('Error: ' + response.data.message);
-                        }
-                    }
-                });
-            });
-        });
-        </script>
         <?php
     }
     
@@ -464,10 +434,11 @@ class Miapg_Admin {
      */
     public function enqueue_admin_scripts($hook) {
         // Only load on plugin pages
-        if (strpos($hook, 'miapg-post-generator') === false) {
+        if (strpos($hook, 'miapg-post-generator') === false && strpos($hook, 'miapg-ideas-manager') === false) {
             return;
         }
         
+        // Enqueue main admin styles
         wp_enqueue_style(
             'miapg-post-generator-admin',
             MIAPG_PLUGIN_URL . 'assets/css/admin.css',
@@ -475,6 +446,7 @@ class Miapg_Admin {
             MIAPG_VERSION
         );
         
+        // Enqueue main admin script
         wp_enqueue_script(
             'miapg-post-generator-admin',
             MIAPG_PLUGIN_URL . 'assets/js/admin.js',
@@ -482,6 +454,53 @@ class Miapg_Admin {
             MIAPG_VERSION,
             true
         );
+        
+        // Enqueue ideas manager script for ideas management pages
+        if (strpos($hook, 'miapg-ideas-manager') !== false) {
+            wp_enqueue_script(
+                'miapg-ideas-manager',
+                MIAPG_PLUGIN_URL . 'assets/js/ideas-manager.js',
+                array('jquery', 'miapg-post-generator-admin'),
+                MIAPG_VERSION,
+                true
+            );
+            
+            wp_enqueue_script(
+                'miapg-url-cleaner',
+                MIAPG_PLUGIN_URL . 'assets/js/url-cleaner.js',
+                array(),
+                MIAPG_VERSION,
+                true
+            );
+        }
+        
+        // Enqueue ideas tab script for main plugin page (ideas tab)
+        if (strpos($hook, 'miapg-post-generator') !== false) {
+            wp_enqueue_script(
+                'miapg-ideas-tab',
+                MIAPG_PLUGIN_URL . 'assets/js/ideas-tab.js',
+                array('jquery', 'miapg-post-generator-admin'),
+                MIAPG_VERSION,
+                true
+            );
+            
+            // Localize ideas tab strings
+            wp_localize_script(
+                'miapg-ideas-tab',
+                'miapgIdeasTab',
+                array(
+                    'strings' => array(
+                        'confirmDelete' => __('Are you sure you want to delete this idea?', 'miapg-post-generator'),
+                        'errorDeleting' => __('Error deleting idea. Please try again.', 'miapg-post-generator'),
+                        'selectAction' => __('Please select an action.', 'miapg-post-generator'),
+                        'selectIdeas' => __('Please select at least one idea.', 'miapg-post-generator'),
+                        'enterKeyword' => __('Enter keyword to add to selected ideas:', 'miapg-post-generator'),
+                        'confirmBulkDelete' => __('Are you sure you want to delete the selected ideas?', 'miapg-post-generator'),
+                        'errorBulkAction' => __('Error processing bulk action. Please try again.', 'miapg-post-generator'),
+                    )
+                )
+            );
+        }
         
         // Localize script
         wp_localize_script(
@@ -703,13 +722,6 @@ class Miapg_Admin {
      */
     public function clean_url_after_message() {
         ?>
-        <script>
-        // Clean URL after showing the message
-        if (window.location.href.indexOf('miapg_message=') > -1) {
-            var cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?page=miapg-ideas-manager';
-            window.history.replaceState({}, document.title, cleanUrl);
-        }
-        </script>
         <?php
     }
     

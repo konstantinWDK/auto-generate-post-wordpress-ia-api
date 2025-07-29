@@ -5,6 +5,29 @@ All notable changes to Auto Post Generator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - 2024-01-15
+
+### Fixed
+- **CRITICAL**: Compliance with WordPress standards for JavaScript and CSS inclusion
+- Removed all inline JavaScript and CSS code embedded in HTML
+- Scripts now load conditionally based on admin page
+- Improved script dependency system and localization
+
+### Added
+- Proper implementation of wp_enqueue_script() and wp_enqueue_style()
+- Separated inline code into dedicated files:
+  - assets/js/ideas-manager.js - Ideas management functionality
+  - assets/js/url-cleaner.js - URL cleaning functionality  
+  - assets/js/ideas-tab.js - Ideas tab functionality
+  - assets/js/page-redirecter.js - Page redirection functionality
+  - assets/css/post-ideas-cpt.css - Custom Post Type styles
+
+### Improved
+- Performance optimization with conditional resource loading
+- Better script dependency management
+- Enhanced WordPress coding standards compliance
+- Cleaner code organization and maintainability
+
 ## [3.1] - 2024-01-01
 
 ### Added

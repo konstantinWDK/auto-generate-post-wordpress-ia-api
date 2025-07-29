@@ -4,7 +4,7 @@ Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.2
+Stable tag: 3.2.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,12 +15,12 @@ Advanced AI-powered content generator with idea management system and optimized 
 
 MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
-🚀 **NUEVO en la Versión 3.2:**
-- **Sistema de Configuración Reparado**: Solucionados problemas críticos de guardado de ajustes
-- **Soporte Multiidioma Mejorado**: Traducciones completas para español, inglés y ruso
-- **Interfaz Completamente Traducida**: Todos los desplegables y opciones ahora se traducen automáticamente
-- **Configuraciones Persistentes**: Los ajustes ahora se guardan correctamente en todas las pestañas
-- **Coherencia de Nombres**: Unificación de nomenclatura de campos para mejor funcionamiento
+🚀 **NUEVO en la Versión 3.2.1:**
+- **Cumplimiento WordPress**: Implementación correcta de wp_enqueue_script() y wp_enqueue_style()
+- **Código Separado**: JavaScript y CSS inline movido a archivos dedicados
+- **Mejores Prácticas**: Eliminado todo el código embebido en HTML
+- **Rendimiento Optimizado**: Carga condicional de recursos según página
+- **Scripts Organizados**: Nuevos archivos JS/CSS para mejor mantenimiento
 
 🔥 **Características de la Versión 3.1:**
 - **Gestión Completa de Ideas**: Sistema de Custom Post Type para almacenar y gestionar ideas
@@ -134,6 +134,18 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 7. Programación automática inteligente
 
 == Registro de Cambios ==
+
+= 3.2.1 =
+* CRÍTICO: Cumplimiento con estándares de WordPress para inclusión de JavaScript y CSS
+* NUEVO: Implementación correcta de wp_enqueue_script() y wp_enqueue_style()
+* NUEVO: Separación de código JavaScript inline en archivos dedicados
+* NUEVO: Archivos JS creados: ideas-manager.js, url-cleaner.js, ideas-tab.js, page-redirecter.js
+* NUEVO: Archivo CSS creado: post-ideas-cpt.css para estilos del Custom Post Type
+* CORREGIDO: Eliminado todo el código JavaScript y CSS inline embebido en HTML
+* CORREGIDO: Scripts ahora se cargan condicionalmente según la página administrativa
+* MEJORADO: Sistema de dependencias y localización de scripts mejorado
+* MEJORADO: Rendimiento optimizado con carga condicional de recursos
+* MEJORADO: Cumplimiento con las mejores prácticas de WordPress para desarrollo de plugins
 
 = 3.2 =
 * CRÍTICO: Solucionados problemas críticos de guardado de configuraciones en todas las pestañas
