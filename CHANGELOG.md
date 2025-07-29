@@ -5,6 +5,22 @@ All notable changes to Auto Post Generator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.2] - 2024-01-16
+
+### Added
+- **CRITICAL**: Complete documentation of external third-party services
+- Comprehensive External Services section in readme.txt
+- Detailed documentation of OpenAI API usage and data transmission
+- Detailed documentation of DeepSeek AI API usage and data transmission
+- Links to official Terms of Service and Privacy Policies for both services
+- Clear explanation of what data is sent, when, and under which conditions
+- Legal disclaimer about user responsibility for API compliance
+
+### Improved
+- Enhanced transparency for WordPress directory compliance
+- Better user awareness of data transmission to external services
+- Comprehensive legal protection documentation
+
 ## [3.2.1] - 2024-01-15
 
 ### Fixed

@@ -4,7 +4,7 @@ Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.2.1
+Stable tag: 3.2.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,12 +15,12 @@ Advanced AI-powered content generator with idea management system and optimized 
 
 MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
-🚀 **NUEVO en la Versión 3.2.1:**
-- **Cumplimiento WordPress**: Implementación correcta de wp_enqueue_script() y wp_enqueue_style()
-- **Código Separado**: JavaScript y CSS inline movido a archivos dedicados
-- **Mejores Prácticas**: Eliminado todo el código embebido en HTML
-- **Rendimiento Optimizado**: Carga condicional de recursos según página
-- **Scripts Organizados**: Nuevos archivos JS/CSS para mejor mantenimiento
+🚀 **NUEVO en la Versión 3.2.2:**
+- **Documentación Completa**: Servicios externos completamente documentados
+- **Transparencia Total**: Explicación clara de datos enviados a OpenAI y DeepSeek
+- **Cumplimiento Legal**: Enlaces oficiales a términos de servicio y privacidad
+- **Protección Usuario**: Disclaimer sobre responsabilidad del usuario
+- **Estándares WordPress**: Cumplimiento total con directorio de WordPress
 
 🔥 **Características de la Versión 3.1:**
 - **Gestión Completa de Ideas**: Sistema de Custom Post Type para almacenar y gestionar ideas
@@ -86,6 +86,50 @@ MaestrIA post generator es el plugin más avanzado de WordPress para la creació
 - Configuración en tiempo real
 - Manejo integral de errores
 
+== Servicios Externos ==
+
+Este plugin se conecta a servicios de inteligencia artificial externos para generar contenido automáticamente. Es fundamental que los usuarios comprendan qué datos se envían y bajo qué condiciones.
+
+= OpenAI API =
+
+Este plugin utiliza la API de OpenAI para generar contenido de blog, ideas de posts y títulos automáticamente mediante modelos de inteligencia artificial como GPT-4 y GPT-3.5.
+
+**¿Qué datos se envían?**
+- Prompts de texto (temas, palabras clave, instrucciones de contenido)
+- Parámetros de configuración de IA (temperatura, tokens máximos, penalizaciones)
+- Tu clave API personal de OpenAI
+
+**¿Cuándo se envían?**
+- Cada vez que generas un post automáticamente
+- Cada vez que generas ideas de posts
+- Cada vez que generas títulos para artículos
+- Al validar tu clave API de OpenAI
+
+**Servicio proporcionado por:** OpenAI  
+**Términos de servicio:** https://openai.com/terms/  
+**Política de privacidad:** https://openai.com/privacy/
+
+= DeepSeek AI API =
+
+Este plugin utiliza la API de DeepSeek AI como alternativa para generar contenido de blog, ideas de posts y títulos mediante sus modelos de inteligencia artificial.
+
+**¿Qué datos se envían?**
+- Prompts de texto (temas, palabras clave, instrucciones de contenido)
+- Parámetros de configuración de IA (temperatura, tokens máximos, penalizaciones)
+- Tu clave API personal de DeepSeek
+
+**¿Cuándo se envían?**
+- Cada vez que generas contenido con DeepSeek seleccionado como proveedor
+- Cada vez que generas ideas usando DeepSeek
+- Cada vez que generas títulos con DeepSeek
+- Al validar tu clave API de DeepSeek
+
+**Servicio proporcionado por:** DeepSeek AI  
+**Términos de servicio:** https://www.deepseek.com/terms  
+**Política de privacidad:** https://www.deepseek.com/privacy
+
+**IMPORTANTE:** Este plugin requiere que proporciones tus propias claves API de estos servicios. Los datos se transmiten directamente desde tu sitio web a los proveedores de IA seleccionados. Es tu responsabilidad cumplir con los términos de servicio y políticas de privacidad de estos servicios externos. El plugin no almacena ni procesa estos datos; simplemente actúa como intermediario para las solicitudes de API.
+
 == Instalación ==
 
 1. Sube los archivos del plugin al directorio `/wp-content/plugins/auto-post-generator` o instálalo directamente desde la pantalla de plugins de WordPress.
@@ -134,6 +178,18 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 7. Programación automática inteligente
 
 == Registro de Cambios ==
+
+= 3.2.2 =
+* CRÍTICO: Cumplimiento con estándares de WordPress para documentación de servicios externos
+* NUEVO: Sección completa "Servicios Externos" en readme.txt
+* NUEVO: Documentación detallada del uso de OpenAI API y transmisión de datos
+* NUEVO: Documentación detallada del uso de DeepSeek AI API y transmisión de datos
+* NUEVO: Enlaces oficiales a Términos de Servicio y Políticas de Privacidad
+* NUEVO: Explicación clara de qué datos se envían, cuándo y bajo qué condiciones
+* NUEVO: Disclaimer legal sobre responsabilidad del usuario por cumplimiento de APIs
+* MEJORADO: Transparencia mejorada para cumplimiento del directorio de WordPress
+* MEJORADO: Mayor conciencia del usuario sobre transmisión de datos a servicios externos
+* MEJORADO: Documentación integral de protección legal
 
 = 3.2.1 =
 * CRÍTICO: Cumplimiento con estándares de WordPress para inclusión de JavaScript y CSS
