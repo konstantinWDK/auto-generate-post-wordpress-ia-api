@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MaestrIA post generator
  * Description: Advanced AI-powered content generator with idea management system, article-based generation, category selection, and optimized HTML output for WordPress.
- * Version: 3.2.2
+ * Version: 3.2.4
  * Author: konstantinWDK
  * Author URI: https://webdesignerk.com
  * Text Domain: miapg-post-generator
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MIAPG_VERSION', '3.2.2');
+define('MIAPG_VERSION', '3.2.4');
 define('MIAPG_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MIAPG_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('MIAPG_PLUGIN_FILE', __FILE__);

@@ -195,7 +195,13 @@ class Miapg_Post_Ideas_CPT {
     public function actions_meta_box_callback($post) {
         ?>
         <div style="text-align: center; padding: 20px;">
-            <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID)); ?>" class="button button-primary button-large" style="width: 100%; margin-bottom: 10px;">
+            <?php
+            $create_url = wp_nonce_url(
+                admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID),
+                'create_from_idea_' . $post->ID
+            );
+            ?>
+            <a href="<?php echo esc_url($create_url); ?>" class="button button-primary button-large" style="width: 100%; margin-bottom: 10px;">
                 🚀 <?php esc_html_e('Generate Post with this Idea', 'miapg-post-generator'); ?>
             </a>
             <p class="description"><?php esc_html_e('Create a complete post based on this idea', 'miapg-post-generator'); ?></p>
@@ -260,7 +266,11 @@ class Miapg_Post_Ideas_CPT {
                 echo esc_html(get_post_meta($post_id, '_miapg_idea_generated_date', true));
                 break;
             case 'actions':
-                echo '<a href="' . esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post_id)) . '" class="button button-primary">' . esc_html__('Generate Post', 'miapg-post-generator') . '</a>';
+                $create_url = wp_nonce_url(
+                    admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post_id),
+                    'create_from_idea_' . $post_id
+                );
+                echo '<a href="' . esc_url($create_url) . '" class="button button-primary">' . esc_html__('Generate Post', 'miapg-post-generator') . '</a>';
                 break;
         }
     }
@@ -285,8 +295,11 @@ class Miapg_Post_Ideas_CPT {
             unset($actions['edit']);
             unset($actions['inline hide-if-no-js']);
             
-            $generate_url = admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID);
-            $actions['generate_post'] = '<a href="' . $generate_url . '" title="' . __('Generate post based on this idea', 'miapg-post-generator') . '">' . __('Generate Post', 'miapg-post-generator') . '</a>';
+            $generate_url = wp_nonce_url(
+                admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $post->ID),
+                'create_from_idea_' . $post->ID
+            );
+            $actions['generate_post'] = '<a href="' . esc_url($generate_url) . '" title="' . esc_attr__('Generate post based on this idea', 'miapg-post-generator') . '">' . esc_html__('Generate Post', 'miapg-post-generator') . '</a>';
         }
         return $actions;
     }
@@ -880,11 +893,12 @@ class Miapg_Post_Ideas_CPT {
             }
         }
         
-        // Redirect with results
+        // Redirect with results and verification nonce
         $redirect_url = add_query_arg(array(
             'post_type' => 'miapg_post_idea',
             'all_deleted' => $deleted_count,
-            'all_delete_failed' => $failed_count
+            'all_delete_failed' => $failed_count,
+            '_notice_nonce' => wp_create_nonce('delete_all_notice')
         ), admin_url('edit.php'));
         
         wp_redirect($redirect_url);
@@ -895,11 +909,14 @@ class Miapg_Post_Ideas_CPT {
      * Show delete all admin notice
      */
     public function show_delete_all_notice() {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if (!empty($_REQUEST['all_deleted'])) {
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        // Only show notice if we have the proper parameters and user has permissions
+        if (!empty($_REQUEST['all_deleted']) && current_user_can('manage_options')) {
+            // Verify the notice comes from a legitimate delete action
+            if (!isset($_REQUEST['_notice_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_notice_nonce'])), 'delete_all_notice')) {
+                return; // Silently ignore invalid notices
+            }
+            
             $deleted = intval($_REQUEST['all_deleted']);
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $failed = isset($_REQUEST['all_delete_failed']) ? intval($_REQUEST['all_delete_failed']) : 0;
             
             if ($deleted > 0) {

@@ -182,13 +182,16 @@ class Miapg_Post_Generator {
             if (defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                 // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 error_log('MIAPG: No content generated from API. Full response: ' . wp_json_encode($result));
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 error_log('MIAPG: API endpoint used: ' . $ai_settings['endpoint']);
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 error_log('MIAPG: Model used: ' . $ai_settings['model']);
             }
             
             // Check if there's an error message from the API
             if (isset($result['error']['message'])) {
                 return new WP_Error('api_error', sprintf(
+                    // translators: %s is the error message from the AI API
                     __('AI API Error: %s', 'miapg-post-generator'), 
                     $result['error']['message']
                 ));
@@ -371,7 +374,7 @@ class Miapg_Post_Generator {
         
         // Validate and format date
         if ($status === 'future' && strtotime($date) <= current_time('timestamp')) {
-            $date = date('Y-m-d H:i:s', current_time('timestamp') + 3600); // Set 1 hour from now
+            $date = gmdate('Y-m-d H:i:s', current_time('timestamp') + 3600); // Set 1 hour from now
         }
         
         // Prepare categories array

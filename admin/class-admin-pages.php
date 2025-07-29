@@ -155,16 +155,23 @@ class Miapg_Admin_Pages {
         // Handle post creation
         if (isset($_POST['create_now']) && isset($_POST['create_post_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['create_post_nonce'])), 'create_post_now')) {
             // Form data is safe to access after nonce verification
-            // Handle idea-based creation
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            // Handle idea-based creation (nonce already verified above for form submission)
             $idea_id = isset($_GET['idea_id']) ? absint(wp_unslash($_GET['idea_id'])) : 0;
             $idea_post = null;
             $idea_keyword = '';
             
             if ($idea_id) {
-                $idea_post = get_post($idea_id);
-                if ($idea_post && $idea_post->post_type === 'miapg_post_idea') {
-                    $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
+                // Additional security check: verify nonce for idea access
+                if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'create_from_idea_' . $idea_id)) {
+                    echo '<div class="notice notice-error"><p>' . esc_html(miapg_translate('Security check failed when accessing idea.')) . '</p></div>';
+                    $idea_id = 0;
+                } else {
+                    $idea_post = get_post($idea_id);
+                    if ($idea_post && $idea_post->post_type === 'miapg_post_idea') {
+                        $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
+                    } else {
+                        $idea_id = 0; // Reset if invalid post
+                    }
                 }
             }
             
@@ -215,10 +222,24 @@ class Miapg_Admin_Pages {
             }
         }
         
-        // Handle idea deletion
-        if (isset($_GET['action']) && sanitize_text_field(wp_unslash($_GET['action'])) === 'delete' && isset($_GET['idea_id']) && isset($_GET['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'delete_idea_' . sanitize_text_field(wp_unslash($_GET['idea_id'])))) {
-            // URL parameters are safe to access after nonce verification
-            $delete_id = isset($_GET['idea_id']) ? absint(wp_unslash($_GET['idea_id'])) : 0;
+        // Handle idea deletion with proper security checks
+        if (isset($_GET['action']) && sanitize_text_field(wp_unslash($_GET['action'])) === 'delete') {
+            // First verify we have all required parameters
+            if (!isset($_GET['idea_id']) || !isset($_GET['_wpnonce'])) {
+                wp_die(esc_html__('Missing required parameters for deletion.', 'miapg-post-generator'));
+            }
+            
+            $delete_id = absint(wp_unslash($_GET['idea_id']));
+            
+            // Verify nonce separately to avoid bypass
+            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'delete_idea_' . $delete_id)) {
+                wp_die(esc_html__('Security check failed.', 'miapg-post-generator'));
+            }
+            
+            // Verify user permissions
+            if (!current_user_can('delete_miapg_post_ideas')) {
+                wp_die(esc_html__('You do not have permission to delete ideas.', 'miapg-post-generator'));
+            }
             
             if (wp_delete_post($delete_id, true)) {
                 echo '<div class="notice notice-success"><p>' . esc_html(miapg_translate('Idea deleted successfully.')) . '</p></div>';

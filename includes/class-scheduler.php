@@ -110,6 +110,7 @@ class Miapg_Scheduler {
         }
         
         // First try to use saved ideas with better query
+        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Optimized query with minimal results and disabled caches
         $available_ideas = get_posts(array(
             'post_type' => 'miapg_post_idea',
             'numberposts' => 1,

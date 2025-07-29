@@ -130,7 +130,9 @@ class Miapg_Admin {
                 <div class="postbox">
                     <div class="postbox-header">
                         <h2 class="hndle">
-                            <?php printf(esc_html__('Saved Ideas (%d)', 'miapg-post-generator'), count($ideas)); ?>
+                            <?php 
+                            // translators: %d is the number of saved ideas
+                            printf(esc_html__('Saved Ideas (%d)', 'miapg-post-generator'), count($ideas)); ?>
                         </h2>
                     </div>
                     <div class="inside">
@@ -189,7 +191,13 @@ class Miapg_Admin {
                                                        class="button button-small">
                                                         📝 <?php esc_html_e('Edit', 'miapg-post-generator'); ?>
                                                     </a>
-                                                    <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID)); ?>" 
+                                                    <?php
+                                                    $create_url = wp_nonce_url(
+                                                        admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID),
+                                                        'create_from_idea_' . $idea->ID
+                                                    );
+                                                    ?>
+                                                    <a href="<?php echo esc_url($create_url); ?>" 
                                                        class="button button-small button-primary">
                                                         🚀 <?php esc_html_e('Generate Post', 'miapg-post-generator'); ?>
                                                     </a>
@@ -293,12 +301,13 @@ class Miapg_Admin {
         
         // AI Provider
         $provider_status = !empty($ai_settings['api_key']) ? '✅ ' . __('Configured', 'miapg-post-generator') : '❌ ' . __('Not configured', 'miapg-post-generator');
-        echo '<tr><td>' . esc_html__('AI Provider', 'miapg-post-generator') . '</td><td>' . $provider_status . '</td><td>' . esc_html(ucfirst($provider)) . '</td></tr>';
+        echo '<tr><td>' . esc_html__('AI Provider', 'miapg-post-generator') . '</td><td>' . wp_kses_post($provider_status) . '</td><td>' . esc_html(ucfirst($provider)) . '</td></tr>';
         
         // API Key
         $api_key_status = !empty($ai_settings['api_key']) ? '✅ ' . __('Present', 'miapg-post-generator') : '❌ ' . __('Missing', 'miapg-post-generator');
         $api_key_length = !empty($ai_settings['api_key']) ? strlen($ai_settings['api_key']) : 0;
-        echo '<tr><td>' . esc_html__('API Key', 'miapg-post-generator') . '</td><td>' . $api_key_status . '</td><td>' . sprintf(esc_html__('%d characters', 'miapg-post-generator'), $api_key_length) . '</td></tr>';
+        // translators: %d is the number of characters in the API key
+        echo '<tr><td>' . esc_html__('API Key', 'miapg-post-generator') . '</td><td>' . wp_kses_post($api_key_status) . '</td><td>' . sprintf(esc_html__('%d characters', 'miapg-post-generator'), esc_html($api_key_length)) . '</td></tr>';
         
         // Model
         $model = !empty($ai_settings['model']) ? $ai_settings['model'] : __('Not set', 'miapg-post-generator');
@@ -313,17 +322,18 @@ class Miapg_Admin {
             $ai_params['top_p'],
             $ai_params['max_tokens']
         );
-        echo '<tr><td>' . esc_html__('AI Parameters', 'miapg-post-generator') . '</td><td>' . $params_valid . '</td><td>' . esc_html($params_details) . '</td></tr>';
+        echo '<tr><td>' . esc_html__('AI Parameters', 'miapg-post-generator') . '</td><td>' . esc_html($params_valid) . '</td><td>' . esc_html($params_details) . '</td></tr>';
         
         // Custom Post Type Capabilities
         $has_capabilities = current_user_can('edit_miapg_post_ideas');
         $capabilities_status = $has_capabilities ? '✅ ' . __('Working', 'miapg-post-generator') : '❌ ' . __('Missing', 'miapg-post-generator');
-        echo '<tr><td>' . esc_html__('Ideas Capabilities', 'miapg-post-generator') . '</td><td>' . $capabilities_status . '</td><td>' . ($has_capabilities ? __('User can edit ideas', 'miapg-post-generator') : __('User cannot edit ideas', 'miapg-post-generator')) . '</td></tr>';
+        echo '<tr><td>' . esc_html__('Ideas Capabilities', 'miapg-post-generator') . '</td><td>' . wp_kses_post($capabilities_status) . '</td><td>' . esc_html($has_capabilities ? __('User can edit ideas', 'miapg-post-generator') : __('User cannot edit ideas', 'miapg-post-generator')) . '</td></tr>';
         
         // Ideas Count
         $ideas_count = wp_count_posts('miapg_post_idea');
         $total_ideas = isset($ideas_count->publish) ? $ideas_count->publish : 0;
-        echo '<tr><td>' . esc_html__('Saved Ideas', 'miapg-post-generator') . '</td><td>ℹ️</td><td>' . sprintf(esc_html__('%d ideas', 'miapg-post-generator'), $total_ideas) . '</td></tr>';
+        // translators: %d is the number of saved ideas
+        echo '<tr><td>' . esc_html__('Saved Ideas', 'miapg-post-generator') . '</td><td>ℹ️</td><td>' . sprintf(esc_html__('%d ideas', 'miapg-post-generator'), esc_html($total_ideas)) . '</td></tr>';
         
         // WordPress Version
         global $wp_version;
@@ -593,6 +603,7 @@ class Miapg_Admin {
         }
         
         // Show success message
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (isset($_GET['miapg_message']) && $_GET['miapg_message'] === 'capabilities_reset') {
             add_action('admin_notices', function() {
                 ?>
@@ -653,6 +664,7 @@ class Miapg_Admin {
         }
         
         // Show messages based on URL parameters
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (isset($_GET['miapg_message'])) {
             add_action('admin_notices', array($this, 'show_ideas_manager_notices'));
             add_action('admin_footer', array($this, 'clean_url_after_message'));
@@ -663,14 +675,17 @@ class Miapg_Admin {
      * Show ideas manager notices
      */
     public function show_ideas_manager_notices() {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (!isset($_GET['miapg_message'])) {
             return;
         }
         
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $message_type = sanitize_text_field(wp_unslash($_GET['miapg_message']));
         
         switch ($message_type) {
             case 'idea_deleted':
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 $idea_title = isset($_GET['idea_title']) ? sanitize_text_field(wp_unslash($_GET['idea_title'])) : '';
                 $idea_title = urldecode($idea_title);
                 ?>
@@ -744,12 +759,14 @@ class Miapg_Admin {
         }
         
         // Clean up any orphaned metadata
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->query($wpdb->prepare(
             "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
             '_miapg_idea_%'
         ));
         
         // Clean up any orphaned post relationships
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->query($wpdb->prepare(
             "DELETE FROM {$wpdb->posts} WHERE post_type = %s",
             'miapg_post_idea'

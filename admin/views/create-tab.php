@@ -11,19 +11,31 @@ if (!defined('ABSPATH')) {
 // Get categories for dropdown
 $categories = get_categories();
 
-// Safely get idea_id from URL if present (WordPress admin standard pattern)
-// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$idea_id = isset($_GET['idea_id']) ? absint(wp_unslash($_GET['idea_id'])) : 0;
+// Safely get idea_id from URL with proper nonce verification
+$idea_id = 0;
 $idea_title = '';
 $idea_keyword = '';
 
-if ($idea_id > 0) {
-    $idea_post = get_post($idea_id);
-    if ($idea_post && $idea_post->post_type === 'miapg_post_idea') {
-        $idea_title = $idea_post->post_title;
-        $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
-    } else {
-        $idea_id = 0; // Reset if invalid post
+if (isset($_GET['idea_id'])) {
+    $potential_idea_id = absint(wp_unslash($_GET['idea_id']));
+    
+    // Verify nonce when idea_id is present
+    if ($potential_idea_id > 0) {
+        if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'create_from_idea_' . $potential_idea_id)) {
+            wp_die(esc_html__('Security check failed when accessing idea.', 'miapg-post-generator'));
+        }
+        
+        // Verify user permissions
+        if (!current_user_can('edit_miapg_post_ideas')) {
+            wp_die(esc_html__('You do not have permission to access ideas.', 'miapg-post-generator'));
+        }
+        
+        $idea_post = get_post($potential_idea_id);
+        if ($idea_post && $idea_post->post_type === 'miapg_post_idea') {
+            $idea_id = $potential_idea_id;
+            $idea_title = $idea_post->post_title;
+            $idea_keyword = get_post_meta($idea_id, '_miapg_idea_keyword', true);
+        }
     }
 }
 ?>

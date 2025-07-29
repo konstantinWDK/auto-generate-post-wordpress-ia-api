@@ -4,7 +4,7 @@ Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.2.2
+Stable tag: 3.2.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,12 +15,12 @@ Advanced AI-powered content generator with idea management system and optimized 
 
 MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
-🚀 **NUEVO en la Versión 3.2.2:**
-- **Documentación Completa**: Servicios externos completamente documentados
-- **Transparencia Total**: Explicación clara de datos enviados a OpenAI y DeepSeek
-- **Cumplimiento Legal**: Enlaces oficiales a términos de servicio y privacidad
-- **Protección Usuario**: Disclaimer sobre responsabilidad del usuario
-- **Estándares WordPress**: Cumplimiento total con directorio de WordPress
+🚀 **NUEVO en la Versión 3.2.4:**
+- **Plugin Check Compliant**: Cumplimiento total con la herramienta oficial Plugin Check de WordPress
+- **Optimización de Rendimiento**: Mejoras en consultas de base de datos y funciones de escape
+- **Internacionalización Mejorada**: Comentarios de traductores completos para todos los placeholders
+- **Seguridad Reforzada**: Escape de salida optimizado y validaciones de nonce mejoradas
+- **Código Limpio**: Resolución de todas las advertencias de desarrollo y mejores prácticas
 
 🔥 **Características de la Versión 3.1:**
 - **Gestión Completa de Ideas**: Sistema de Custom Post Type para almacenar y gestionar ideas
@@ -179,6 +179,35 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 
 == Registro de Cambios ==
 
+= 3.2.4 =
+* CRÍTICO: Cumplimiento completo con Plugin Check - herramienta oficial de WordPress
+* CRÍTICO: Corrección de todas las advertencias y errores detectados por Plugin Check
+* NUEVO: Comentarios de traductores para todas las funciones de internacionalización con placeholders
+* NUEVO: Escape de salida optimizado para todas las variables en admin/class-admin.php
+* NUEVO: Uso de gmdate() en lugar de date() para evitar problemas de zona horaria
+* CORREGIDO: Escape de $provider_status, $api_key_status, $params_valid y $capabilities_status
+* CORREGIDO: Comentarios phpcs para error_log() condicionados por WP_DEBUG_LOG
+* CORREGIDO: Verificaciones de nonce con comentarios phpcs para casos de solo lectura
+* CORREGIDO: Función __() en includes/class-post-generator.php con comentario de traductor faltante
+* MEJORADO: Consultas directas a BD con comentarios phpcs justificando su necesidad
+* MEJORADO: Meta_query optimizada en scheduler con comentario explicativo
+* MEJORADO: Cumplimiento con estándares de codificación de WordPress
+* MEJORADO: Código preparado para aprobación en directorio oficial de WordPress
+
+= 3.2.3 =
+* CRÍTICO: Implementación completa de verificaciones nonce para prevenir ataques CSRF
+* CRÍTICO: Validación exhaustiva de permisos de usuario en todas las operaciones sensibles
+* NUEVO: Protección de URLs con idea_id mediante nonces de seguridad en create-tab.php
+* NUEVO: Verificación de nonce en acceso a ideas para generación de posts
+* NUEVO: Refuerzo de seguridad en sistema de eliminación de ideas
+* CORREGIDO: Todas las URLs con parámetros ID ahora incluyen verificación wp_nonce_url()
+* CORREGIDO: Separación de lógica de verificación de nonce de otras condiciones
+* CORREGIDO: Validación de permisos específicos (edit_miapg_post_ideas, delete_miapg_post_ideas)
+* MEJORADO: Seguridad en admin-pages.php con verificación dual de nonces
+* MEJORADO: Protección en class-post-ideas-cpt.php para todas las acciones de ideas
+* MEJORADO: Sistema de notificaciones con autenticación mejorada en class-admin.php
+* MEJORADO: Cumplimiento total con estándares de seguridad del directorio WordPress
+
 = 3.2.2 =
 * CRÍTICO: Cumplimiento con estándares de WordPress para documentación de servicios externos
 * NUEVO: Sección completa "Servicios Externos" en readme.txt
@@ -261,6 +290,12 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 * Lanzamiento inicial
 
 == Aviso de Actualización ==
+
+= 3.2.4 =
+**ACTUALIZACIÓN CRÍTICA PARA DIRECTORIO WORDPRESS**: Esta versión implementa el cumplimiento completo con Plugin Check, la herramienta oficial de validación de WordPress. Incluye correcciones críticas de escape de salida, optimizaciones de rendimiento, comentarios de traductores completos y mejoras en las mejores prácticas de código. Esencial para aprobación en el directorio oficial. Se recomienda actualizar inmediatamente para asegurar compatibilidad total con estándares WordPress 2025.
+
+= 3.2.3 =
+**ACTUALIZACIÓN DE SEGURIDAD CRÍTICA**: Esta versión corrige importantes vulnerabilidades de seguridad relacionadas con verificaciones nonce y permisos de usuario. Se recomienda encarecidamente actualizar inmediatamente para proteger tu sitio contra posibles ataques CSRF y accesos no autorizados. Todas las URLs con parámetros ID han sido aseguradas con verificaciones de seguridad apropiadas.
 
 = 3.2 =
 **ACTUALIZACIÓN CRÍTICA**: Esta versión soluciona problemas importantes de guardado de configuraciones que afectaban el funcionamiento del plugin. Se recomienda encarecidamente actualizar. Después de actualizar, verifica que todas tus configuraciones se guarden correctamente y disfruta de la interfaz completamente traducida en tu idioma preferido.

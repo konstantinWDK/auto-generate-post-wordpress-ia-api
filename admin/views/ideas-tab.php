@@ -170,7 +170,13 @@ $ideas = get_posts(array(
                                            target="_blank">
                                             📝 <?php esc_html_e('Edit', 'miapg-post-generator'); ?>
                                         </a>
-                                        <a href="<?php echo esc_url(admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID)); ?>" 
+                                        <?php
+                                        $create_url = wp_nonce_url(
+                                            admin_url('admin.php?page=miapg-post-generator&tab=create&idea_id=' . $idea->ID),
+                                            'create_from_idea_' . $idea->ID
+                                        );
+                                        ?>
+                                        <a href="<?php echo esc_url($create_url); ?>" 
                                            class="button button-small button-primary idea-generate-btn"
                                            title="<?php esc_attr_e('Generate a post from this idea', 'miapg-post-generator'); ?>">
                                             🚀 <?php esc_html_e('Generate Post', 'miapg-post-generator'); ?>
