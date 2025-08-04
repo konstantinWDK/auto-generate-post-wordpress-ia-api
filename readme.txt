@@ -4,7 +4,7 @@ Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.2.4
+Stable tag: 3.2.5
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,7 +15,15 @@ Advanced AI-powered content generator with idea management system and optimized 
 
 MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
-🚀 **NUEVO en la Versión 3.2.4:**
+🚀 **NUEVO en la Versión 3.2.5:**
+- **CRÍTICO**: Corrección de vulnerabilidades de seguridad en bulk actions
+- **Mejora de Seguridad**: Validaciones de nonce mejoradas en bulk_action_admin_notice()
+- **Verificaciones de Permisos**: Controles de acceso reforzados para bulk actions
+- **Validación de Datos**: Verificación de rangos numéricos razonables en notificaciones
+- **Contexto de Seguridad**: Verificación de tipo de pantalla antes de mostrar mensajes
+- **Listo para Directorio**: Cumplimiento total con estándares de seguridad WordPress
+
+🔥 **Versión 3.2.4:**
 - **Plugin Check Compliant**: Cumplimiento total con la herramienta oficial Plugin Check de WordPress
 - **Optimización de Rendimiento**: Mejoras en consultas de base de datos y funciones de escape
 - **Internacionalización Mejorada**: Comentarios de traductores completos para todos los placeholders
@@ -179,6 +187,18 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 
 == Registro de Cambios ==
 
+= 3.2.5 =
+* CRÍTICO: Corrección de vulnerabilidades de seguridad en acceso directo a $_REQUEST en bulk actions
+* CRÍTICO: Implementación de verificaciones de permisos reforzadas en bulk_action_admin_notice()
+* NUEVO: Validación de rangos numéricos para prevenir valores maliciosos en notificaciones
+* NUEVO: Verificación de contexto de pantalla antes de mostrar mensajes de bulk actions
+* NUEVO: Validación regex para IDs seleccionados en bulk actions de keywords
+* CORREGIDO: Acceso no autenticado a parámetros de bulk actions en URLs
+* CORREGIDO: Falta de verificación de permisos edit_miapg_post_ideas en mensajes
+* CORREGIDO: Posible manipulación de contadores de éxito/fallo en bulk actions
+* MEJORADO: Cumplimiento total con estándares de seguridad de WordPress Directory
+* MEJORADO: Robustez de seguridad para aprobación en directorio oficial
+
 = 3.2.4 =
 * CRÍTICO: Cumplimiento completo con Plugin Check - herramienta oficial de WordPress
 * CRÍTICO: Corrección de todas las advertencias y errores detectados por Plugin Check
@@ -290,6 +310,9 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 * Lanzamiento inicial
 
 == Aviso de Actualización ==
+
+= 3.2.5 =
+**ACTUALIZACIÓN DE SEGURIDAD CRÍTICA**: Esta versión corrige vulnerabilidades de seguridad importantes en el sistema de bulk actions que permitían acceso no autorizado a parámetros de $_REQUEST. Se han implementado verificaciones de permisos reforzadas, validaciones de contexto de pantalla y controles de rangos numéricos. Esencial para cumplimiento con estándares de seguridad del directorio WordPress. Actualizar inmediatamente para proteger tu sitio.
 
 = 3.2.4 =
 **ACTUALIZACIÓN CRÍTICA PARA DIRECTORIO WORDPRESS**: Esta versión implementa el cumplimiento completo con Plugin Check, la herramienta oficial de validación de WordPress. Incluye correcciones críticas de escape de salida, optimizaciones de rendimiento, comentarios de traductores completos y mejoras en las mejores prácticas de código. Esencial para aprobación en el directorio oficial. Se recomienda actualizar inmediatamente para asegurar compatibilidad total con estándares WordPress 2025.

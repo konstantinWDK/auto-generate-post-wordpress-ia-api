@@ -613,63 +613,83 @@ class Miapg_Post_Ideas_CPT {
      * Show bulk action admin notice
      */
     public function bulk_action_admin_notice() {
+        // Check if user has proper permissions
+        if (!current_user_can('edit_miapg_post_ideas')) {
+            return;
+        }
+        
+        // Check if we're on the correct post type screen
+        $screen = get_current_screen();
+        if (!$screen || $screen->post_type !== 'miapg_post_idea') {
+            return;
+        }
+        
+        // Handle bulk generation notices
         if (!empty($_REQUEST['bulk_generated'])) {
             $generated = intval($_REQUEST['bulk_generated']);
             $failed = isset($_REQUEST['bulk_failed']) ? intval($_REQUEST['bulk_failed']) : 0;
             
-            if ($generated > 0) {
-                /* translators: %d: number of posts generated */
-                printf(
-                    '<div class="notice notice-success is-dismissible"><p>' . 
-                    // translators: %d is the number of posts generated
-                    esc_html(_n('%d post generated successfully.', '%d posts generated successfully.', $generated, 'miapg-post-generator')) . 
-                    '</p></div>',
-                    esc_html($generated)
-                );
-            }
-            
-            if ($failed > 0) {
-                /* translators: %d: number of posts that failed */
-                printf(
-                    '<div class="notice notice-error is-dismissible"><p>' . 
-                    // translators: %d is the number of posts that failed
-                    esc_html(_n('%d post failed to generate.', '%d posts failed to generate.', $failed, 'miapg-post-generator')) . 
-                    '</p></div>',
-                    esc_html($failed)
-                );
+            // Validate that the numbers are reasonable (security check)
+            if ($generated >= 0 && $failed >= 0 && ($generated + $failed) <= 1000) {
+                if ($generated > 0) {
+                    /* translators: %d: number of posts generated */
+                    printf(
+                        '<div class="notice notice-success is-dismissible"><p>' . 
+                        // translators: %d is the number of posts generated
+                        esc_html(_n('%d post generated successfully.', '%d posts generated successfully.', $generated, 'miapg-post-generator')) . 
+                        '</p></div>',
+                        esc_html($generated)
+                    );
+                }
+                
+                if ($failed > 0) {
+                    /* translators: %d: number of posts that failed */
+                    printf(
+                        '<div class="notice notice-error is-dismissible"><p>' . 
+                        // translators: %d is the number of posts that failed
+                        esc_html(_n('%d post failed to generate.', '%d posts failed to generate.', $failed, 'miapg-post-generator')) . 
+                        '</p></div>',
+                        esc_html($failed)
+                    );
+                }
             }
         }
         
+        // Handle bulk deletion notices
         if (!empty($_REQUEST['bulk_deleted'])) {
             $deleted = intval($_REQUEST['bulk_deleted']);
             $failed = isset($_REQUEST['bulk_delete_failed']) ? intval($_REQUEST['bulk_delete_failed']) : 0;
             
-            if ($deleted > 0) {
-                /* translators: %d: number of ideas deleted */
-                printf(
-                    '<div class="notice notice-success is-dismissible"><p>' . 
-                    // translators: %d is the number of ideas deleted
-                    esc_html(_n('%d idea deleted successfully.', '%d ideas deleted successfully.', $deleted, 'miapg-post-generator')) . 
-                    '</p></div>',
-                    esc_html($deleted)
-                );
-            }
-            
-            if ($failed > 0) {
-                /* translators: %d: number of ideas that failed to delete */
-                printf(
-                    '<div class="notice notice-error is-dismissible"><p>' . 
-                    // translators: %d is the number of ideas that failed to delete
-                    esc_html(_n('%d idea failed to delete.', '%d ideas failed to delete.', $failed, 'miapg-post-generator')) . 
-                    '</p></div>',
-                    esc_html($failed)
-                );
+            // Validate that the numbers are reasonable (security check)
+            if ($deleted >= 0 && $failed >= 0 && ($deleted + $failed) <= 1000) {
+                if ($deleted > 0) {
+                    /* translators: %d: number of ideas deleted */
+                    printf(
+                        '<div class="notice notice-success is-dismissible"><p>' . 
+                        // translators: %d is the number of ideas deleted
+                        esc_html(_n('%d idea deleted successfully.', '%d ideas deleted successfully.', $deleted, 'miapg-post-generator')) . 
+                        '</p></div>',
+                        esc_html($deleted)
+                    );
+                }
+                
+                if ($failed > 0) {
+                    /* translators: %d: number of ideas that failed to delete */
+                    printf(
+                        '<div class="notice notice-error is-dismissible"><p>' . 
+                        // translators: %d is the number of ideas that failed to delete
+                        esc_html(_n('%d idea failed to delete.', '%d ideas failed to delete.', $failed, 'miapg-post-generator')) . 
+                        '</p></div>',
+                        esc_html($failed)
+                    );
+                }
             }
         }
         
+        // Handle add keywords bulk action
         if (!empty($_REQUEST['bulk_action']) && sanitize_text_field(wp_unslash($_REQUEST['bulk_action'])) === 'add_keywords') {
             $selected_ids = isset($_REQUEST['selected_ids']) ? sanitize_text_field(wp_unslash($_REQUEST['selected_ids'])) : '';
-            if ($selected_ids) {
+            if ($selected_ids && preg_match('/^[\d,]+$/', $selected_ids)) {
                 echo '<div class="notice notice-info is-dismissible">';
                 echo '<p>' . esc_html__('Add keywords to selected ideas:', 'miapg-post-generator') . '</p>';
                 echo '<form method="post" style="display: inline-block;">';
