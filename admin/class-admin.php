@@ -227,19 +227,7 @@ class Miapg_Admin {
      * Diagnostics page content
      */
     public function diagnostics_page() {
-        // Handle test generation
-        if (isset($_POST['test_generation']) && isset($_POST['diagnostics_nonce']) && 
-            wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['diagnostics_nonce'])), 'miapg_diagnostics') &&
-            current_user_can('manage_options')) {
-            $this->run_generation_test();
-        }
-        
-        // Handle fix parameters
-        if (isset($_POST['fix_parameters']) && isset($_POST['diagnostics_nonce']) && 
-            wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['diagnostics_nonce'])), 'miapg_diagnostics') &&
-            current_user_can('manage_options')) {
-            $this->fix_ai_parameters();
-        }
+        // POST actions are now handled in handle_admin_actions() for performance
         
         ?>
         <div class="wrap">
@@ -600,6 +588,19 @@ class Miapg_Admin {
                 'miapg_message' => 'capabilities_reset'
             ), admin_url('admin.php')));
             exit;
+        }
+        
+        // PERFORMANCE: Handle diagnostics POST actions here instead of in page render
+        if (isset($_POST['test_generation']) && isset($_POST['diagnostics_nonce']) && 
+            wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['diagnostics_nonce'])), 'miapg_diagnostics') &&
+            current_user_can('manage_options')) {
+            $this->run_generation_test();
+        }
+        
+        if (isset($_POST['fix_parameters']) && isset($_POST['diagnostics_nonce']) && 
+            wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['diagnostics_nonce'])), 'miapg_diagnostics') &&
+            current_user_can('manage_options')) {
+            $this->fix_ai_parameters();
         }
         
         // Show success message

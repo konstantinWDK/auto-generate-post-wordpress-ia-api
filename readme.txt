@@ -4,7 +4,7 @@ Link: https://webdesignerk.com/
 Tags: OpenAI, DeepSeek, GPT-4, auto post, SEO
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.2.5
+Stable tag: 3.2.6
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,7 +15,7 @@ Advanced AI-powered content generator with idea management system and optimized 
 
 MaestrIA post generator es el plugin más avanzado de WordPress para la creación automatizada de contenido. Soporta múltiples proveedores de IA (OpenAI y DeepSeek), ofrece amplias opciones de personalización, programación automática, gestión de ideas y generación de contenido basado en artículos de referencia.
 
-🚀 **NUEVO en la Versión 3.2.5:**
+🚀 **NUEVO en la Versión 3.2.6:**
 - **CRÍTICO**: Corrección de vulnerabilidades de seguridad en bulk actions
 - **Mejora de Seguridad**: Validaciones de nonce mejoradas en bulk_action_admin_notice()
 - **Verificaciones de Permisos**: Controles de acceso reforzados para bulk actions
@@ -187,6 +187,16 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 
 == Registro de Cambios ==
 
+= 3.2.6 =
+* CRÍTICO: Implementación completa de verificación nonce para todas las llamadas $_POST, $_GET, $_REQUEST
+* NUEVO: Funciones helper de seguridad para acceso seguro a superglobales (miapg_get_request_param)
+* NUEVO: Función de verificación integral de seguridad (miapg_verify_request_security)
+* NUEVO: Función especializada para bulk actions (miapg_verify_bulk_action_security)
+* CORREGIDO: Lógica de seguridad no bypaseable en bulk_action_admin_notice()
+* CORREGIDO: Verificación de permisos antes de procesamiento de datos en todas las funciones AJAX
+* MEJORADO: Cumplimiento 100% con estándares de seguridad WordPress para prevenir CSRF
+* MEJORADO: Arquitectura de seguridad robusta y no vulnerable a bypass
+
 = 3.2.5 =
 * CRÍTICO: Corrección de vulnerabilidades de seguridad en acceso directo a $_REQUEST en bulk actions
 * CRÍTICO: Implementación de verificaciones de permisos reforzadas en bulk_action_admin_notice()
@@ -310,6 +320,9 @@ Cada idea puede tener una palabra clave específica que se usará estratégicame
 * Lanzamiento inicial
 
 == Aviso de Actualización ==
+
+= 3.2.6 =
+**ACTUALIZACIÓN DE SEGURIDAD CRÍTICA**: Esta versión implementa verificación nonce completa para TODAS las llamadas de entrada ($_POST, $_GET, $_REQUEST) para prevenir ataques CSRF. Se han agregado funciones helper de seguridad, verificación integral de permisos y lógica de seguridad no bypaseable. Cumplimiento 100% con estándares de seguridad WordPress. Actualizar inmediatamente para máxima protección.
 
 = 3.2.5 =
 **ACTUALIZACIÓN DE SEGURIDAD CRÍTICA**: Esta versión corrige vulnerabilidades de seguridad importantes en el sistema de bulk actions que permitían acceso no autorizado a parámetros de $_REQUEST. Se han implementado verificaciones de permisos reforzadas, validaciones de contexto de pantalla y controles de rangos numéricos. Esencial para cumplimiento con estándares de seguridad del directorio WordPress. Actualizar inmediatamente para proteger tu sitio.

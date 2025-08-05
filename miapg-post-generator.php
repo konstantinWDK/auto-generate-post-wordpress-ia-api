@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MaestrIA post generator
  * Description: Advanced AI-powered content generator with idea management system, article-based generation, category selection, and optimized HTML output for WordPress.
- * Version: 3.2.5
+ * Version: 3.2.6
  * Author: konstantinWDK
  * Author URI: https://webdesignerk.com
  * Text Domain: miapg-post-generator
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MIAPG_VERSION', '3.2.5');
+define('MIAPG_VERSION', '3.2.6');
 define('MIAPG_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MIAPG_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('MIAPG_PLUGIN_FILE', __FILE__);
@@ -372,6 +372,104 @@ class Miapg_Main {
     private static function remove_database_tables() {
         // Remove custom tables if any exist in future versions
     }
+}
+
+/**
+ * Security helper function to safely get request parameters
+ * 
+ * @param string $key The parameter key to retrieve
+ * @param string $method The HTTP method ('GET', 'POST', 'REQUEST')
+ * @param mixed $default Default value if parameter doesn't exist
+ * @param string $sanitize Sanitization function to apply
+ * @param array $allowed_values Optional whitelist of allowed values
+ * @return mixed Sanitized parameter value or default
+ */
+function miapg_get_request_param($key, $method = 'GET', $default = '', $sanitize = 'sanitize_text_field', $allowed_values = array()) {
+    $superglobal = null;
+    
+    switch (strtoupper($method)) {
+        case 'GET':
+            $superglobal = $_GET;
+            break;
+        case 'POST':
+            $superglobal = $_POST;
+            break;
+        case 'REQUEST':
+            $superglobal = $_REQUEST;
+            break;
+        default:
+            return $default;
+    }
+    
+    if (!isset($superglobal[$key])) {
+        return $default;
+    }
+    
+    // Sanitize the value
+    $value = call_user_func($sanitize, wp_unslash($superglobal[$key]));
+    
+    // Check against whitelist if provided
+    if (!empty($allowed_values) && !in_array($value, $allowed_values, true)) {
+        return $default;
+    }
+    
+    return $value;
+}
+
+/**
+ * Security helper function to verify nonce and permissions with strict validation
+ * 
+ * @param string $action The nonce action
+ * @param string $nonce_key The nonce parameter key (default: '_wpnonce')
+ * @param string $capability Required user capability
+ * @param string $method HTTP method to check ('GET', 'POST', 'REQUEST')
+ * @param bool $die_on_failure Whether to wp_die() on failure or return false
+ * @return bool True if verification passes, false otherwise (or wp_die if $die_on_failure is true)
+ */
+function miapg_verify_request_security($action, $nonce_key = '_wpnonce', $capability = 'manage_options', $method = 'GET', $die_on_failure = false) {
+    // CRITICAL: All security checks must pass - use OR logic for failures to prevent bypass
+    $capability_check = current_user_can($capability);
+    $nonce = miapg_get_request_param($nonce_key, $method, '');
+    $nonce_check = wp_verify_nonce($nonce, $action);
+    
+    // If ANY security check fails, block the request
+    if (!$capability_check || empty($nonce) || !$nonce_check) {
+        if ($die_on_failure) {
+            wp_die(esc_html__('Security verification failed. You do not have permission to perform this action.', 'miapg-post-generator'));
+        }
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * Enhanced security helper for bulk actions with context validation
+ * 
+ * @param string $required_capability Required user capability
+ * @param string $post_type Expected post type context
+ * @param bool $die_on_failure Whether to wp_die() on failure
+ * @return bool True if all security checks pass
+ */
+function miapg_verify_bulk_action_security($required_capability = 'edit_miapg_post_ideas', $post_type = 'miapg_post_idea', $die_on_failure = true) {
+    // Check screen context first (lightweight)
+    $screen = get_current_screen();
+    if (!$screen || $screen->post_type !== $post_type) {
+        if ($die_on_failure) {
+            wp_die(esc_html__('Invalid context for this action.', 'miapg-post-generator'));
+        }
+        return false;
+    }
+    
+    // Check user capability (more expensive)
+    if (!current_user_can($required_capability)) {
+        if ($die_on_failure) {
+            wp_die(esc_html__('You do not have permission to perform this action.', 'miapg-post-generator'));
+        }
+        return false;
+    }
+    
+    return true;
 }
 
 // Initialize plugin

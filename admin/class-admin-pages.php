@@ -51,7 +51,11 @@ class Miapg_Admin_Pages {
         
         // Get active tab (WordPress admin standard pattern)
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
+        $requested_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
+        
+        // Validate tab against allowed tabs (security enhancement)
+        $allowed_tabs = array('general', 'ai', 'content', 'scheduling', 'ideas', 'create');
+        $active_tab = in_array($requested_tab, $allowed_tabs, true) ? $requested_tab : 'general';
         
         // Handle form submissions
         $this->handle_form_submissions($active_tab);

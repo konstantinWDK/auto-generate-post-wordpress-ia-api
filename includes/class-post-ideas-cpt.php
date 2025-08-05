@@ -531,6 +531,20 @@ class Miapg_Post_Ideas_CPT {
             return $redirect_to;
         }
         
+        // CRITICAL SECURITY: Verify permissions for bulk actions
+        // WordPress bulk actions should not be trusted without explicit permission checks
+        if ($doaction === 'generate_posts' && !current_user_can('edit_miapg_post_ideas')) {
+            wp_die(esc_html__('You do not have permission to generate posts from ideas.', 'miapg-post-generator'));
+        }
+        
+        if ($doaction === 'add_keywords' && !current_user_can('edit_miapg_post_ideas')) {
+            wp_die(esc_html__('You do not have permission to add keywords to ideas.', 'miapg-post-generator'));
+        }
+        
+        if ($doaction === 'bulk_delete_ideas' && !current_user_can('delete_miapg_post_ideas')) {
+            wp_die(esc_html__('You do not have permission to delete ideas.', 'miapg-post-generator'));
+        }
+        
         if ($doaction === 'generate_posts') {
             $generated_count = 0;
             $failed_count = 0;
@@ -576,14 +590,16 @@ class Miapg_Post_Ideas_CPT {
             
             $redirect_to = add_query_arg(array(
                 'bulk_generated' => $generated_count,
-                'bulk_failed' => $failed_count
+                'bulk_failed' => $failed_count,
+                '_bulk_nonce' => wp_create_nonce('bulk_action_admin_notice')
             ), $redirect_to);
         }
         
         if ($doaction === 'add_keywords') {
             $redirect_to = add_query_arg(array(
                 'bulk_action' => 'add_keywords',
-                'selected_ids' => implode(',', $post_ids)
+                'selected_ids' => implode(',', $post_ids),
+                '_bulk_nonce' => wp_create_nonce('bulk_action_admin_notice')
             ), $redirect_to);
         }
         
@@ -602,7 +618,8 @@ class Miapg_Post_Ideas_CPT {
             
             $redirect_to = add_query_arg(array(
                 'bulk_deleted' => $deleted_count,
-                'bulk_delete_failed' => $failed_count
+                'bulk_delete_failed' => $failed_count,
+                '_bulk_nonce' => wp_create_nonce('bulk_action_admin_notice')
             ), $redirect_to);
         }
         
@@ -613,19 +630,32 @@ class Miapg_Post_Ideas_CPT {
      * Show bulk action admin notice
      */
     public function bulk_action_admin_notice() {
-        // Check if user has proper permissions
-        if (!current_user_can('edit_miapg_post_ideas')) {
-            return;
-        }
-        
-        // Check if we're on the correct post type screen
+        // Check screen context first (lightweight check)
         $screen = get_current_screen();
         if (!$screen || $screen->post_type !== 'miapg_post_idea') {
             return;
         }
         
+        // Check permissions before any $_REQUEST access
+        if (!current_user_can('edit_miapg_post_ideas')) {
+            return;
+        }
+        
+        // CRITICAL: Verify nonce BEFORE any $_REQUEST processing
+        // If no nonce present, there should be no bulk action parameters to process
+        if (!isset($_REQUEST['_bulk_nonce']) || 
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_bulk_nonce'])), 'bulk_action_admin_notice')) {
+            // No valid nonce = no processing of any $_REQUEST data
+            return;
+        }
+        
+        // SAFE: Now we can safely access $_REQUEST knowing nonce is verified
+        
+        // SAFE: Only NOW can we safely check and process $_REQUEST data
         // Handle bulk generation notices
         if (!empty($_REQUEST['bulk_generated'])) {
+            
+            // SAFE: Only process $_REQUEST data AFTER security verification passes
             $generated = intval($_REQUEST['bulk_generated']);
             $failed = isset($_REQUEST['bulk_failed']) ? intval($_REQUEST['bulk_failed']) : 0;
             
@@ -657,6 +687,11 @@ class Miapg_Post_Ideas_CPT {
         
         // Handle bulk deletion notices
         if (!empty($_REQUEST['bulk_deleted'])) {
+            // Additional permission check for delete operations
+            if (!current_user_can('delete_miapg_post_ideas')) {
+                return;
+            }
+            
             $deleted = intval($_REQUEST['bulk_deleted']);
             $failed = isset($_REQUEST['bulk_delete_failed']) ? intval($_REQUEST['bulk_delete_failed']) : 0;
             
@@ -688,7 +723,10 @@ class Miapg_Post_Ideas_CPT {
         
         // Handle add keywords bulk action
         if (!empty($_REQUEST['bulk_action']) && sanitize_text_field(wp_unslash($_REQUEST['bulk_action'])) === 'add_keywords') {
+            
             $selected_ids = isset($_REQUEST['selected_ids']) ? sanitize_text_field(wp_unslash($_REQUEST['selected_ids'])) : '';
+            
+            // Validate selected IDs format (only digits and commas allowed)
             if ($selected_ids && preg_match('/^[\d,]+$/', $selected_ids)) {
                 echo '<div class="notice notice-info is-dismissible">';
                 echo '<p>' . esc_html__('Add keywords to selected ideas:', 'miapg-post-generator') . '</p>';
@@ -704,6 +742,11 @@ class Miapg_Post_Ideas_CPT {
         
         // Handle keyword application
         if (!empty($_POST['apply_keywords']) && !empty($_POST['idea_ids']) && !empty($_POST['bulk_keyword'])) {
+            // Verify permissions first
+            if (!current_user_can('edit_miapg_post_ideas')) {
+                wp_die(esc_html__('You do not have permission to edit ideas.', 'miapg-post-generator'));
+            }
+            
             // Verify nonce
             if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'bulk_keywords_action')) {
                 wp_die(esc_html__('Security check failed', 'miapg-post-generator'));
@@ -929,35 +972,50 @@ class Miapg_Post_Ideas_CPT {
      * Show delete all admin notice
      */
     public function show_delete_all_notice() {
-        // Only show notice if we have the proper parameters and user has permissions
-        if (!empty($_REQUEST['all_deleted']) && current_user_can('manage_options')) {
-            // Verify the notice comes from a legitimate delete action
-            if (!isset($_REQUEST['_notice_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_notice_nonce'])), 'delete_all_notice')) {
-                return; // Silently ignore invalid notices
-            }
-            
-            $deleted = intval($_REQUEST['all_deleted']);
-            $failed = isset($_REQUEST['all_delete_failed']) ? intval($_REQUEST['all_delete_failed']) : 0;
-            
-            if ($deleted > 0) {
-                printf(
-                    '<div class="notice notice-success is-dismissible"><p>' . 
-                    // translators: %d: number of ideas deleted
-                    esc_html(__('All %d ideas have been deleted successfully.', 'miapg-post-generator')) . 
-                    '</p></div>',
-                    esc_html($deleted)
-                );
-            }
-            
-            if ($failed > 0) {
-                printf(
-                    '<div class="notice notice-error is-dismissible"><p>' . 
-                    // translators: %d: number of ideas that failed to delete
-                    esc_html(__('%d ideas failed to delete.', 'miapg-post-generator')) . 
-                    '</p></div>',
-                    esc_html($failed)
-                );
-            }
+        // PERFORMANCE: Early exit if no delete all parameters present
+        if (empty($_REQUEST['all_deleted'])) {
+            return; // No delete all notice to show, exit immediately
+        }
+        
+        // Check screen context first (lightweight check)
+        $screen = get_current_screen();
+        if (!$screen || $screen->post_type !== 'miapg_post_idea') {
+            return;
+        }
+        
+        // CRITICAL: Both permission AND nonce must pass - no bypass possible
+        if (!current_user_can('manage_options') || 
+            !isset($_REQUEST['_notice_nonce']) || 
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_notice_nonce'])), 'delete_all_notice')) {
+            return; // Fail if ANY security check fails
+        }
+        
+        $deleted = intval($_REQUEST['all_deleted']);
+        $failed = isset($_REQUEST['all_delete_failed']) ? intval($_REQUEST['all_delete_failed']) : 0;
+        
+        // Enhanced validation of numeric values
+        if ($deleted < 0 || $failed < 0 || ($deleted + $failed) > 10000) {
+            return; // Invalid values, ignore notice
+        }
+        
+        if ($deleted > 0) {
+            printf(
+                '<div class="notice notice-success is-dismissible"><p>' . 
+                // translators: %d: number of ideas deleted
+                esc_html(__('All %d ideas have been deleted successfully.', 'miapg-post-generator')) . 
+                '</p></div>',
+                esc_html($deleted)
+            );
+        }
+        
+        if ($failed > 0) {
+            printf(
+                '<div class="notice notice-error is-dismissible"><p>' . 
+                // translators: %d: number of ideas that failed to delete
+                esc_html(__('%d ideas failed to delete.', 'miapg-post-generator')) . 
+                '</p></div>',
+                esc_html($failed)
+            );
         }
     }
     
